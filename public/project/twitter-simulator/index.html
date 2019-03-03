@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="author" content="Guneev kaur">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Overview Link to demo video: https://youtu.be/XlY2eoI5o-8
+Part I of this project can be seen at https://github.com/krohitm/Twitter-Simulator
+The part I of our project had all the functionalities working. In part II, we have used Phoenix web framework to implement a WebSocket interface to our part I implementation. This implementation was achieved by fulfilling the following tasks:
+ Designed a JSON based API that represents all messages and their replies (including errors).">
+
+  
+  <link rel="alternate" hreflang="en-us" href="/project/twitter-simulator/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.1/css/academicons.min.css" integrity="sha512-NThgw3XKQ1absAahW6to7Ey42uycrVvfNfyjqcFNgCmOCQ5AR4AO0SiXrN+8ZtYeappp56lk1WtvjVmEa+VR6A==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+
+  
+  <link rel="alternate" href="/index.xml" type="application/rss+xml" title="Guneev&#39;s Blog">
+  <link rel="feed" href="/index.xml" type="application/rss+xml" title="Guneev&#39;s Blog">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="/project/twitter-simulator/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="og:site_name" content="Guneev&#39;s Blog">
+  <meta property="og:url" content="/project/twitter-simulator/">
+  <meta property="og:title" content="Twitter Simulator | Guneev&#39;s Blog">
+  <meta property="og:description" content="Overview Link to demo video: https://youtu.be/XlY2eoI5o-8
+Part I of this project can be seen at https://github.com/krohitm/Twitter-Simulator
+The part I of our project had all the functionalities working. In part II, we have used Phoenix web framework to implement a WebSocket interface to our part I implementation. This implementation was achieved by fulfilling the following tasks:
+ Designed a JSON based API that represents all messages and their replies (including errors)."><meta property="og:image" content="/img/twitter-simulator.png">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-04-09T00:00:00&#43;00:00">
+  
+  <meta property="article:modified_time" content="2018-04-09T00:00:00&#43;00:00">
+  
+
+  
+
+  <title>Twitter Simulator | Guneev&#39;s Blog</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Guneev&#39;s Blog</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#experience">
+            
+            <span>Experience</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article article-project" itemscope itemtype="http://schema.org/Article">
+
+  
+<div class="article-header">
+  
+  
+    <img src="/img/twitter-simulator.png" class="article-banner" itemprop="image">
+  
+
+  <span class="article-header-caption">A screenshot of the UI</span>
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="pub-title">
+      <h1 itemprop="name">Twitter Simulator</h1>
+      <span class="pub-authors" itemprop="author">&nbsp;</span>
+      <span class="pull-right">
+        
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Twitter%20Simulator&amp;url=%2fproject%2ftwitter-simulator%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=%2fproject%2ftwitter-simulator%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=%2fproject%2ftwitter-simulator%2f&amp;title=Twitter%20Simulator"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=%2fproject%2ftwitter-simulator%2f&amp;title=Twitter%20Simulator"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Twitter%20Simulator&amp;body=%2fproject%2ftwitter-simulator%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+      </span>
+    </div>
+
+    
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<h2 id="overview"><strong>Overview</strong></h2>
+
+<p>Link to demo video: <a href="https://youtu.be/XlY2eoI5o-8" target="_blank">https://youtu.be/XlY2eoI5o-8</a></p>
+
+<p>Part I of this project can be seen at <a href="https://github.com/krohitm/Twitter-Simulator" target="_blank">https://github.com/krohitm/Twitter-Simulator</a></p>
+
+<p>The <a href="https://didyousaydata.xyz/project/twitter-engine/" target="_blank">part I</a> of our project had all the functionalities working. In part II, we have used Phoenix web framework to implement a WebSocket interface to our part I implementation. This implementation was achieved by fulfilling the following tasks:</p>
+
+<ol>
+<li>Designed a JSON based API that represents all messages and their replies (including errors).</li>
+<li>Re-wrote our engine using Phoenix to implement the WebSocket interface.</li>
+<li>Re-wrote our client to use WebSockets.</li>
+</ol>
+
+<p>We have used the exact same server that acts as an API to the Phoenix channels (check <a href="https://github.com/adityavhegde/Twitter-Simulator#architecture-and-notes" target="_blank">architecture</a> section for details). This Server that acts as API can handle all the following:</p>
+
+<ul>
+<li>Tweeting to followers</li>
+<li>Searching tweets - tweets, tweets with hashtags, tweets with mentions</li>
+<li>Retweet a tweet that a user receives</li>
+</ul>
+
+<p>We have broken down the implementation into two parts:</p>
+
+<ol>
+<li>A few simple clients, that when connected to localhost, make a socket connection to the server</li>
+<li>Simulator: A socket.js file that opens 1000 websocket connections to the server and does the job of simulating tweets, retweets and the various searches.<br /></li>
+</ol>
+
+<h2 id="simulator"><strong>Simulator</strong>:</h2>
+
+<p>Simulator runs through the sockets in a loop. That does not mean that only one socket is occupied at a time. The server actors for tweets, retweets, search are constantly running in the background and pushing payloads to active sockets. Thus, our simulation is creating sockets which are constantly active, which is also what we are trying to achieve in our simulation.</p>
+
+<p>The simulator opens 1000 websockets to the server, each as a new user. These users are then registered, and are given subscribers according to zipf distribution, as in part 1. After this, each of these users send tweets, search for tweets, search for hashtags, and search for mentions, choosing one of these behaviors, randomly. This cycle runs infinitely for each user/websocket.</p>
+
+<h2 id="client-side"><strong>Client Side</strong>:</h2>
+
+<p>The server is accessed by running localhost:4000 in the browser. This leads to creation of a websocket, which is basically a new user in our case. A new user can give its username(a new one), subscribe to another user, send tweets, query for its mentions, search for hashtags, query for tweets of users it has subscribed to, and retweet the tweets it can see in its feed. These features can be seen in Fig. 1. An example of application of these features can be seen in Fig. 2.</p>
+
+<p><img src="https://user-images.githubusercontent.com/13625549/34135581-905fb364-e42f-11e7-9b95-05680bb8d56b.png" alt="alt text" /></p>
+
+<p>Fig. 1: Features available to the user. The user can enter a new username, send tweets, subscribe to users, search for tweets of users subscribed to, search for hashtags, search for its mentions, and retweet a tweet in its feed</p>
+
+<p><img src="https://user-images.githubusercontent.com/13625549/34135684-298f40fe-e430-11e7-900f-506fc2ad1cbd.png" alt="alt text" /></p>
+
+<p>Fig.2: The new user has given its username as aditya and subscribed to user rohit. It receives tweets by user rohit (hello world!), can retweet, gets results for query for tweets of followed users, gets tweet when mentioned, gets search results for mentions, and gets search results for hashtags(#wow).</p>
+
+<h2 id="running-this-project"><strong>Running this project</strong></h2>
+
+<p>Note: please hard reload web page or turn of browser Javascript caching for changes to be visible</p>
+
+<h3 id="running-simulator"><strong>Running Simulator</strong>:</h3>
+
+<ul>
+<li>Go to assets &gt; js &gt; app.js</li>
+<li>At the bottom, comment the line import socket from &ldquo;./single_socket&rdquo; , and uncomment the line import socket from &ldquo;./socket&rdquo;. Continue if already so.</li>
+<li>Currently, 1000 websockets have been setup to run. To change the number of websockets, go to assets &gt; js &gt; socket.js. Go to line 13(let maxClients = 1000) and change the number to desired number of websockets. If you don’t want to change the number of websockets, skip this step.</li>
+<li>From terminal, run the command mix phx.server. Once the files have compiled, go to next step.</li>
+<li>Open a browser and run localhost:4000. This will start the given number of websockets.</li>
+</ul>
+
+<h3 id="running-individual-client"><strong>Running Individual client</strong>:</h3>
+
+<ul>
+<li>Go to assets &gt; js &gt;app.js</li>
+<li>At the bottom, comment the line import socket from &ldquo;./socket&rdquo; , and uncomment the line import socket from &ldquo;./single_socket&rdquo;. Continue if already so.</li>
+<li>From terminal, run the command mix phx.server. Once the files have compiled, go to next step.</li>
+<li>Open a browser and run localhost:4000. You can open multiple clients by opening multiple webpages for the given server.</li>
+<li>Once the webpage opens, give a username to the new user.</li>
+<li>If you have opened multiple clients and assigned usernames to them, you can ask a user to subscribe to some existing user by entering the username of that user in the enter user to subscribe box, and press enter.</li>
+<li>You can type a tweet in send tweet box, and press enter to send a tweet. You can mention existing users in these tweets, and any hashtags that you want.</li>
+<li>When you get a tweet in your feed, you can retweet it by clicking the button retweet under that tweet. The retweeted tweet can be seen in the feed of your followers.</li>
+<li>You can query for tweets of users you have subscribed to, by clicking the search tweets you are subscribed to button.</li>
+<li>You can query for your mentions by clicking the search your mentions button.</li>
+<li>You can search for hashtags by entering a hashtag, with the #symbol, in the search hashtag box, and press enter.</li>
+<li>You can clear the screen by clicking the clear screen button.</li>
+</ul>
+
+<h2 id="performance-with-web-sockets"><strong>Performance with Web Sockets</strong></h2>
+
+<p>We connected a maximum of 1000 sockets to the server. Additionally, we were also able to run our simulations on these sockets.</p>
+
+<h2 id="json-based-api"><strong>JSON Based API</strong></h2>
+
+<p>This is not really needed since Phoenix does this for us implicitly. There are two kinds of communication:
+Client to Server: While sending this data, we make sure it is in the JSON format
+Server to Client: For Phoenix to send payload to client, we need to enclose it in a map, which is implicitly converted by Phoenix in a JSON object and sent to the client.</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="/tags/distributed-systems">distributed-systems</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/elixir">elixir</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/twitter">twitter</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/phoenix">phoenix</a>
+  
+</div>
+
+
+
+
+    
+    
+    
+
+    
+
+  </div>
+</article>
+
+
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/R.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/python.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

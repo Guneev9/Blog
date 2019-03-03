@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>distributed-systems on Guneev&#39;s Blog</title>
+    <link>/tags/distributed-systems/</link>
+    <description>Recent content in distributed-systems on Guneev&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 02 May 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/distributed-systems/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Twitter Engine</title>
+      <link>/project/twitter-engine/</link>
+      <pubDate>Wed, 02 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/project/twitter-engine/</guid>
+      <description>Overview The application can be seen at https://github.com/krohitm/Twitter-Simulator.
+In this project, we implemented a Twitter Clone and a client tester/simulator.
+As part I of this project, we built an engine that (in part II) will be paired up with WebSockets to provide full functionality. Specific things done in this project are:
+ Implemented a Twitter like engine with the following functionality:   Register account. Send tweet. Tweets can have hashtags and mentions.</description>
+    </item>
+    
+    <item>
+      <title>Twitter Simulator</title>
+      <link>/project/twitter-simulator/</link>
+      <pubDate>Mon, 09 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/project/twitter-simulator/</guid>
+      <description>Overview Link to demo video: https://youtu.be/XlY2eoI5o-8
+Part I of this project can be seen at https://github.com/krohitm/Twitter-Simulator
+The part I of our project had all the functionalities working. In part II, we have used Phoenix web framework to implement a WebSocket interface to our part I implementation. This implementation was achieved by fulfilling the following tasks:
+ Designed a JSON based API that represents all messages and their replies (including errors).</description>
+    </item>
+    
+  </channel>
+</rss>

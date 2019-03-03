@@ -1,0 +1,1575 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Guneev&#39;s Blog on Guneev&#39;s Blog</title>
+    <link>/</link>
+    <description>Recent content in Guneev&#39;s Blog on Guneev&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 15 Oct 2017 00:00:00 -0500</lastBuildDate>
+    <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Practical Significance: Looking beyond p-value</title>
+      <link>/post/practical-significance-looking-beyond-p-value/</link>
+      <pubDate>Thu, 01 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/post/practical-significance-looking-beyond-p-value/</guid>
+      <description>
+
+&lt;div id=&#34;TOC&#34;&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#what-is-the-need-to-look-beyond-p-value&#34;&gt;&lt;strong&gt;What is the need to look beyond p-value?&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#how-do-we-check-the-practical-importance-of-the-statistically-significant-result&#34;&gt;&lt;strong&gt;How do we check the practical importance of the statistically significant result?&lt;/strong&gt;&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#identify-the-effect-needed-for-practical-importance&#34;&gt;&lt;strong&gt;Identify the effect needed for practical importance&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#use-confidence-intervals&#34;&gt;&lt;strong&gt;Use Confidence Intervals&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sources&#34;&gt;&lt;strong&gt;Sources&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;what-is-the-need-to-look-beyond-p-value&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;What is the need to look beyond p-value?&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;In my &lt;a href=&#34;http://didyousaydata.xyz/post/linear-regression-modeling-and-assumptions/&#34; target=&#34;blank&#34;&gt;last post&lt;/a&gt;, I mentioned how we can use p-values to select important variables in a linear model. In general, this sounds like an easy basis of testing a hypothesis, but that is not where the story ends.&lt;/p&gt;
+&lt;p&gt;In a practical setting, you need to look beyond mere p-value of an experiment. To understand why, let us walk through an example. We will generate our own dataset for this example.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(dplyr)
+library(lattice) # for splom
+library(ggplot2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Correlation matrix
+M = matrix(c(1, 0.7, 0.7, 0.4,
+             0.7, 1, 0.25, 0.3,
+             0.7, 0.25, 1, 0.3,
+             0.4, 0.3, 0.3, 1), nrow=4, ncol=4)
+ 
+# Cholesky decomposition
+L = chol(M)
+nvars = dim(L)[1]
+
+set.seed(1)
+# number of observations to simulate
+nobs = 1000
+
+# Random variables that follow an M correlation matrix
+r = t(L) %*% matrix(rnorm(nvars*nobs, mean = 50000, sd = 5000), nrow=nvars, 
+                    ncol=nobs)
+
+salesdata = t(r) %&amp;gt;%
+  as.data.frame()
+names(salesdata) = c(&amp;#39;sales&amp;#39;, &amp;#39;tv&amp;#39;, &amp;#39;socialMedia&amp;#39;, &amp;#39;radio&amp;#39;)
+ 
+# Plotting and basic stats
+splom(salesdata)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-10-16-practical-significance-looking-beyond-p-value_files/figure-html/unnamed-chunk-2-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(salesdata) %&amp;gt;%
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;sales&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;tv&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;socialMedia&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;radio&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Min. :33934&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Min. :54906&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Min. :35172&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Min. :52072&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1st Qu.:46584&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1st Qu.:66961&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1st Qu.:46225&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1st Qu.:65903&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Median :49820&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Median :70901&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Median :49618&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Median :69518&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Mean :49901&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Mean :70639&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Mean :49703&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Mean :69451&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3rd Qu.:53529&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3rd Qu.:74194&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3rd Qu.:53221&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3rd Qu.:72973&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Max. :65770&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Max. :87670&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Max. :69830&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;Max. :84702&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Now we have a dataset for sales, with 3 independent features: tv, socialMedia, and radio. We have generated 1,000 observations. Each observation consists of data for a particular market. The 3 features give us the amount spent in USDs in different methods of advertising. The sales column has the corresponding sales in that market.&lt;/p&gt;
+&lt;p&gt;Now that we have the data, let’s build a linear regression model taking all 3 features.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;model &amp;lt;- lm(sales~., data = salesdata)
+summary(model)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;
+Call:
+lm(formula = sales ~ ., data = salesdata)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-7097.0 -1723.0    49.7  1652.5  7543.8 
+
+Coefficients:
+              Estimate Std. Error t value Pr(&amp;gt;|t|)    
+(Intercept) -2.124e+04  1.308e+03 -16.242  &amp;lt; 2e-16 ***
+tv           5.621e-01  1.552e-02  36.225  &amp;lt; 2e-16 ***
+socialMedia  5.348e-01  1.553e-02  34.446  &amp;lt; 2e-16 ***
+radio        6.991e-02  1.586e-02   4.409 1.15e-05 ***
+---
+Signif. codes:  0 &amp;#39;***&amp;#39; 0.001 &amp;#39;**&amp;#39; 0.01 &amp;#39;*&amp;#39; 0.05 &amp;#39;.&amp;#39; 0.1 &amp;#39; &amp;#39; 1
+
+Residual standard error: 2389 on 996 degrees of freedom
+Multiple R-squared:  0.7888,    Adjusted R-squared:  0.7882 
+F-statistic:  1240 on 3 and 996 DF,  p-value: &amp;lt; 2.2e-16&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;All 3 features have a low p-value as per our model. Wonderful! Also, the coefficients of all 3 features are positive. This means investing more in these methods is related to an increase in sales.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-10-16-practical-significance-looking-beyond-p-value_files/images.jpeg&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;
+
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Hold on!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Statistical significance means that you can conclude that an effect exists. It is a mathematical definition. It does not know anything about the subject area and what makes up an important effect.&lt;/p&gt;
+&lt;p&gt;Let’s go back to looking at the coefficient of radio. The low p-value means the effect is significant. Its coefficient is approximately 0.069. This means an extra &lt;span class=&#34;math inline&#34;&gt;\(\$10,000\)&lt;/span&gt; invested in radio advertising is related to a sale of around 690 more units. The question that arises at this point is this: &lt;strong&gt;Is that extra investment worth it?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Suppose this data is for a particular car model, for which sale of each car results in a profit of &lt;span class=&#34;math inline&#34;&gt;\(\$1,000\)&lt;/span&gt;. An increase in &lt;span class=&#34;math inline&#34;&gt;\(\$10,000\)&lt;/span&gt; of spending on radio advertising would be related to a sale of around &lt;span class=&#34;math inline&#34;&gt;\(690\)&lt;/span&gt; more cars. Sale of &lt;span class=&#34;math inline&#34;&gt;\(690\)&lt;/span&gt; more cars would mean an extra profit of &lt;span class=&#34;math inline&#34;&gt;\(\$690,000\)&lt;/span&gt;. That is a net profit of &lt;span class=&#34;math inline&#34;&gt;\(\$680,000\)&lt;/span&gt; on that extra spending. That is &lt;span class=&#34;math inline&#34;&gt;\(68\)&lt;/span&gt; times the extra money invested in radio advertising.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-10-16-practical-significance-looking-beyond-p-value_files/Rplot.png&#34; /&gt;
+
+&lt;/div&gt;
+&lt;p&gt;Consider a different scenario where this data is for the sales of a particular watch. Sale of each watch results in a profit of &lt;span class=&#34;math inline&#34;&gt;\(\$10\)&lt;/span&gt;. An increase in &lt;span class=&#34;math inline&#34;&gt;\(\$10,000\)&lt;/span&gt; of spending on radio advertising would mean a sale of around &lt;span class=&#34;math inline&#34;&gt;\(690\)&lt;/span&gt; more watches. Sale of &lt;span class=&#34;math inline&#34;&gt;\(690\)&lt;/span&gt; more watches would mean an extra profit of &lt;span class=&#34;math inline&#34;&gt;\(\$6,900\)&lt;/span&gt;. That is a net loss of &lt;span class=&#34;math inline&#34;&gt;\(\$3,100\)&lt;/span&gt; on that extra spending.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;how-do-we-check-the-practical-importance-of-the-statistically-significant-result&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;How do we check the practical importance of the statistically significant result?&lt;/strong&gt;&lt;/h2&gt;
+&lt;div id=&#34;identify-the-effect-needed-for-practical-importance&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;&lt;strong&gt;Identify the effect needed for practical importance&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;A simple solution would be understanding how much effect is important to you. Suppose you were checking if more spending on radio advertising leads to more sales. Additionally, you want to know if spending more on radio advertising leads to at least a net profit of &lt;span class=&#34;math inline&#34;&gt;\(5\)&lt;/span&gt;X on that extra spending.&lt;/p&gt;
+&lt;p&gt;As per the model, an increase in spending on radio advertising is related to an increase in the sales.&lt;/p&gt;
+&lt;p&gt;In the first example, there is a net profit of &lt;span class=&#34;math inline&#34;&gt;\(68\)&lt;/span&gt;X on the extra investment. As such, statistical significance is of practical importance in this case.&lt;/p&gt;
+&lt;p&gt;In the second example, spending more on radio advertising is not related to profit. In fact, more spending on radio advertising leads to a net loss of &lt;span class=&#34;math inline&#34;&gt;\(0.31\)&lt;/span&gt;X times on that extra spending. Thus, in spite of the effect being significant, it is of no practical importance.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;use-confidence-intervals&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;&lt;strong&gt;Use Confidence Intervals&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;The coefficient you have is a point estimate of the true coefficient. Since it is an estimate, there is a scope of error. This uncertainty occurs because we have sampled our dataset from some distributions. They do not represent the complete distribution, or in other words, the population. The standard error for that estimated coefficient gives that scope of error. It is the average difference between the estimated coefficient and the true coefficient. For a different dataset with similar distributions, the estimated coefficients may be different.&lt;/p&gt;
+&lt;p&gt;You can use the standard errors to compute the &lt;a href=&#34;https://www.slideshare.net/RizwanSa/confidence-intervals-basic-concepts-and-overview&#34; target=&#34;_blank&#34;&gt;confidence intervals&lt;/a&gt;. A &lt;span class=&#34;math inline&#34;&gt;\(95\%\)&lt;/span&gt; confidence interval is a range for which we are &lt;span class=&#34;math inline&#34;&gt;\(95\%\)&lt;/span&gt; confident that it has the true coefficient. In R, we can use the function &lt;em&gt;confint()&lt;/em&gt; to find the &lt;span class=&#34;math inline&#34;&gt;\(95\%\)&lt;/span&gt; confidence interval.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;confint(model)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;                    2.5 %        97.5 %
+(Intercept) -2.380331e+04 -1.867165e+04
+tv           5.316057e-01  5.925002e-01
+socialMedia  5.043114e-01  5.652431e-01
+radio        3.879204e-02  1.010260e-01&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &lt;span class=&#34;math inline&#34;&gt;\(95\%\)&lt;/span&gt; confidence interval for radio’s coefficient is [0.038, 0.101]. In other words, we can say with &lt;span class=&#34;math inline&#34;&gt;\(95\%\)&lt;/span&gt; confidence that the true coefficient for radio lies between &lt;span class=&#34;math inline&#34;&gt;\(0.038\)&lt;/span&gt; and &lt;span class=&#34;math inline&#34;&gt;\(0.101\)&lt;/span&gt;. An increase in &lt;span class=&#34;math inline&#34;&gt;\(\$10,000\)&lt;/span&gt; spent on radio advertising would mean an average increase in sales from &lt;span class=&#34;math inline&#34;&gt;\(380\)&lt;/span&gt; to &lt;span class=&#34;math inline&#34;&gt;\(1,010\)&lt;/span&gt; units.&lt;/p&gt;
+&lt;p&gt;This is a wide range, but why is that a problem?&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-10-16-practical-significance-looking-beyond-p-value_files/CI.png&#34; /&gt;
+
+&lt;/div&gt;
+&lt;p&gt;Going back to the previous example of cars, the estimated extra profit was &lt;span class=&#34;math inline&#34;&gt;\(\$690,000\)&lt;/span&gt;. As per the confidence interval of [0.038, 0.101], this may range from &lt;span class=&#34;math inline&#34;&gt;\(\$380,000\)&lt;/span&gt; to &lt;span class=&#34;math inline&#34;&gt;\(\$1,010,000\)&lt;/span&gt;. This means the net profit may range from &lt;span class=&#34;math inline&#34;&gt;\(\$370,000\)&lt;/span&gt; to &lt;span class=&#34;math inline&#34;&gt;\(\$1,000,000\)&lt;/span&gt; on the extra spending. In a general sense, the net profit may range from &lt;span class=&#34;math inline&#34;&gt;\(37\)&lt;/span&gt;X to &lt;span class=&#34;math inline&#34;&gt;\(100\)&lt;/span&gt;X on any extra spending on radio advertisement in that case. The amount of uncertainty is quite huge. It might be a better idea to invest in a different method instead with less uncertainty.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusion&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;A p-value is a good starting point to check the importance of an effect. That’s what it is though – a starting point. Once we know of a significant effect, we need to look further into its practical importance.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;sources&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Sources&lt;/strong&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;An Introduction to Statistical Learning, with Application in R. By James, G., Witten, D., Hastie, T., Tibshirani, R.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.r-bloggers.com/simulating-data-following-a-given-covariance-structure/&#34; target=&#34;_blank&#34;&gt;R Bloggers&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://statisticsbyjim.com/hypothesis-testing/practical-statistical-significance/&#34; target=&#34;_blank&#34;&gt;Statistics by Jim&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stats.stackexchange.com/&#34; target=&#34;_blank&#34;&gt;Stack Exchange&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stackoverflow.com&#34; target=&#34;_blank&#34;&gt;Stack Overflow&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.slideshare.net/RizwanSa/confidence-intervals-basic-concepts-and-overview&#34; target=&#34;_blank&#34;&gt;Slideshare&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Images: Google Images&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cancer Classification via Gene Expression</title>
+      <link>/project/cancer-classification/</link>
+      <pubDate>Thu, 20 Sep 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/project/cancer-classification/</guid>
+      <description>
+
+&lt;h2 id=&#34;overview&#34;&gt;&lt;strong&gt;Overview&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Cancer classification is one of the vital areas of medical sciences. In this project, we examine the Gene Expression data for various types of cancer and classify each cancer into its subtypes. We gather the samples from GEO datasets and select the best features using the class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square)  statistics. We then run the following classifiers: K Nearest Neighbors, Naïve Bayes and Decision Trees. We then checked the accuracy of a classifier against a feature selection method for all combinations and observe a feature selection – classifier pair that gives a better accuracy for a particular dataset.&lt;/p&gt;
+
+&lt;h2 id=&#34;background&#34;&gt;&lt;strong&gt;Background&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Early discovery of cancer is an important step in determining the treatment of a patient. Gene expression data can be used to predict the presence of cancer. Traditional way of cancer classification uses the physical attributes and the symptoms of the patient to gain a deeper understanding of the patient’s condition. Because causation and spread of cancer is more related to the genes, it is equally important to study the gene expression data.&lt;/p&gt;
+
+&lt;h2 id=&#34;goal&#34;&gt;&lt;strong&gt;Goal&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Our goal was to use Gene Expression Omnibus (GEO) datasets to build models that can predict the presence of cancer and identify the severity of the cancer. These datasets are freely and publicly available from the &lt;a href=&#34;https://www.ncbi.nlm.nih.gov/gds&#34; target=&#34;_blank&#34;&gt;NCBI&lt;/a&gt;. Each dataset has the gene expression data for various samples, with rows of a matrix file denoting the probe id and the columns denoting the samples. We took five GEO datasets, which have been briefly explained below :&lt;/p&gt;
+
+&lt;h3 id=&#34;gse19804-lung-cancer-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse19804&#34;&gt;&lt;a href=&#34;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE19804&#34; target=&#34;_blank&#34;&gt;GSE19804 (Lung Cancer Dataset)&lt;/a&gt;:&lt;/h3&gt;
+
+&lt;p&gt;GSE19804 is a lung cancer dataset having 120 samples, with 60 lung cancer tissue samples and 60 normal tissue samples, with 54, 675 probe sets.&lt;/p&gt;
+
+&lt;h3 id=&#34;gse27562-breast-cancer-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse27562&#34;&gt;&lt;a href=&#34;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE27562&#34; target=&#34;_blank&#34;&gt;GSE27562 (Breast Cancer Dataset)&lt;/a&gt;:&lt;/h3&gt;
+
+&lt;p&gt;GSE27562 is a breast cancer dataset having 31 normal samples, 57 malignant breast cancer samples, and 37 benign breast cancer samples, with 54, 675 probe sets. There are 15 gastrointestinal tumor and and 7 brain tumor samples, which we have excluded from the datasets as a part of the experiments. We have also excluded 15 breast cancer samples following surgery, since there is no information about them having shown any signs of cancer after surgery.&lt;/p&gt;
+
+&lt;h3 id=&#34;gse32474-nci60-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse32474&#34;&gt;&lt;a href=&#34;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE32474&#34; target=&#34;_blank&#34;&gt;GSE32474 (NCI60 Dataset)&lt;/a&gt;:&lt;/h3&gt;
+
+&lt;p&gt;GSE32474 dataset contains 9 types of different tumors. It has 18 samples for leukemia, 15 samples for breast cancer, 21 samples for ovarian cancer, 21 samples for colon cancer, 26 samples for melanoma, 18 samples for central nervous system, 23 samples for renal cancer and 26 samples for non-small lung cancer, with 54, 675 probe sets. We have excluded 6 prostate samples, since it is not enough for classification.&lt;/p&gt;
+
+&lt;h3 id=&#34;gse33315-leukemia-dataset-http-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse33315&#34;&gt;&lt;a href=&#34;http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE33315&#34; target=&#34;_blank&#34;&gt;GSE33315 (Leukemia Dataset)&lt;/a&gt;:&lt;/h3&gt;
+
+&lt;p&gt;GSE33315 dataset contains 7 types of leukemia cancer. It has 115 samples of type hyperdiploid, 40 samples of TCF3-PBX1, 99 samples of ETV_RUNX1, 30 samples of MLL, 23 samples of PH , 23 samples of hypodiploid and 83 samples of T-ALL, with 22,283 probe sets. We have excluded 4 CD34 and 4 CD10CD19 samples, since that is too less for classification. We have also excluded 153 samples having no known karyotype to focus on leukemia.&lt;/p&gt;
+
+&lt;h3 id=&#34;gse59856-pancreatic-and-biliary-tract-cancer-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse59856&#34;&gt;&lt;a href=&#34;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59856&#34; target=&#34;_blank&#34;&gt;GSE59856 (Pancreatic and Biliary Tract Cancer)&lt;/a&gt;:&lt;/h3&gt;
+
+&lt;p&gt;GSE59856 dataset contains 100 pancreatic cancer samples, 98 biliary tract samples, 50 colon cancer samples, 50 stomach cancer samples, 50 esophagus cancer samples, 52 liver cancer samples, 150 healthy samples, with 2555 probe sets.&lt;/p&gt;
+
+&lt;h2 id=&#34;challenges&#34;&gt;&lt;strong&gt;Challenges&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;There were two major challenges in this project:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;High number of features&lt;/li&gt;
+&lt;li&gt;Low number of samples&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These two challenges go side-by-side in this scenario. Probe ids of a series metrix file essentialy denote the genes whose expression value has been recorded. As such, they are the features of the datasets. As an extreme example, the Lung Cancer Dataset (GSE19804) had 54,675 probe ids, while there were only 120 samples in this dataset. This is a very low number of observations as compared to the number of features; a ratio of less than 0.002. Similar is the case for the Breast Cancer Dataset (GSE27562). Other datasets, though not as extreme, suffer from a similar problem of higher number of features as compared to the number fo observations.&lt;/p&gt;
+
+&lt;h2 id=&#34;actions&#34;&gt;&lt;strong&gt;Actions&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;In order to get rid of the &lt;a href=&#34;https://en.wikipedia.org/wiki/Curse_of_dimensionality#Machine_learning&#34; target=&#34;_blank&#34;&gt;curse of dimensionality&lt;/a&gt;, we tried variety of methods for feature selection and model, depending on the data. A simple example of this the Lung Cancer Dataset (GSE19804). A plot of the features with high variance in this dataset looked like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE19804_results/Most_variant_features.png&#34; alt=&#34;GSE19804: Features with high variance - parallel visualization&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The y-axis denotes the expression values of the genes. It is quite clear from the plot how the expression values of genes are different for the healthy samples and the ones with cancer. While the expression values of genes of cancer patient are all over the place, those of the healthy sample are concentrated at particular locations.&lt;/p&gt;
+
+&lt;p&gt;This distinction is more clear in the radial visualization of these 8 genes:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE19804_results/radviz_most_variant.png&#34; alt=&#34;GSE19804: Features with high variance - radial visualization&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This plot displays relative expression values of the 8 genes. The higher the normalized value of expression, the closer the observation is to the gene. It can be seen how the genes of a healthy person form a cluster, while those of a cancer patient are spread over. As such, simply selecting the features with high variance may work in this case.&lt;/p&gt;
+
+&lt;p&gt;This method doesn&amp;rsquo;t work in other cases though. Take an example of the NCI60 Dataset (GSE32474):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE32474_results/Most_variant_features.png&#34; alt=&#34;GSE32474: Features with high variance - parallel visualization&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The expression values of the genes are crossing over for different cancer types and hence it is not easy to distinguish them.&lt;/p&gt;
+
+&lt;p&gt;Because of different distributions of the datasets, we tried different methods for feature selection. These methods were class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square)  statistics. Additionally, we tried different machine learning models, including KNN, Naive Bayes and Decision Trees. These were combined with the feature selection methods to get the best results, making the selection by trial and error.&lt;/p&gt;
+
+&lt;h2 id=&#34;results&#34;&gt;&lt;strong&gt;Results&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;We ran our experiments using stratified random sub-sampling validation. The stratified approach was taken to avoid the effects of unbalanced classes in the datasets. Random sub-sampling was done, instead of k-fold cross validation, since the number of samples in the datasets are quite low. These validations were repeated 10 times for each combination, and the average results were noted. F1 score was used as the metric to measure the performance.&lt;/p&gt;
+
+&lt;p&gt;The results for the five datasets can be seen below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_2.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_3.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_4.png&#34; alt=&#34;&#34; /&gt;
+&lt;img src=&#34;https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_5.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each cell in a table has (F1 score, number of features).
+Around 100 features gave the best results in most of the cases.&lt;/p&gt;
+
+&lt;h2 id=&#34;further-scope&#34;&gt;&lt;strong&gt;Further scope&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Complete report of the project can be seen &lt;a href=&#34;https://docs.google.com/document/d/17PdU_me1FKvm-pUoQZRY--Ui-48OkeSdrztHt4jrnaE/edit?usp=sharing&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Linear regression: Modeling and Assumptions</title>
+      <link>/post/linear-regression-modeling-and-assumptions/</link>
+      <pubDate>Mon, 17 Sep 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/post/linear-regression-modeling-and-assumptions/</guid>
+      <description>
+
+&lt;div id=&#34;TOC&#34;&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#introduction&#34;&gt;&lt;strong&gt;Introduction&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#is-there-a-relationship-between-the-medical-charges-and-the-predictors&#34;&gt;&lt;strong&gt;Is there a relationship between the medical charges and the predictors?&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#which-variables-have-a-strong-relation-to-medical-charges&#34;&gt;&lt;strong&gt;Which variables have a strong relation to medical charges?&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#are-there-any-multicollinear-features&#34;&gt;&lt;strong&gt;Are there any multicollinear features?&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#is-the-relationship-linear&#34;&gt;&lt;strong&gt;Is the relationship linear?&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#non-constant-variance-of-error-terms&#34;&gt;&lt;strong&gt;Non-constant variance of error terms&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#correlation-of-error-terms&#34;&gt;&lt;strong&gt;Correlation of error terms&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#interpretations&#34;&gt;&lt;strong&gt;Interpretations&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#conclusion&#34;&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sources&#34;&gt;&lt;strong&gt;Sources&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;introduction&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Introduction&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Regression analysis is a powerful statistical process to find the relations within a dataset, with the key focus being on relationships between the independent variables (predictors) and a dependent variable (outcome). It can be used to build models for inference or prediction. Among several methods of regression analysis, linear regression sets the basis and is quite widely used for &lt;a href=&#34;https://en.wikipedia.org/wiki/Linear_regression#Applications&#34; target=&#34;_blank&#34;&gt;several real-world applications&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In this post, we will look at building a linear regression model for inference. The dataset we will use is the insurance charges data obtained from &lt;a href=&#34;https://www.kaggle.com/mirichoi0218/insurance/home&#34; target=&#34;_blank&#34;&gt;Kaggle&lt;/a&gt;. This data set consists of 1,338 observations and 7 columns: age, sex, bmi, children, smoker, region and charges.&lt;/p&gt;
+&lt;p&gt;The key questions that we would be asking are:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;Is there a relationship between medical charges and other variables in the dataset?&lt;/li&gt;
+&lt;li&gt;How valid is the model we have built?&lt;/li&gt;
+&lt;li&gt;What can we do to improve the model?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/2120406.jpg&#34; alt=&#34;Source : Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Source : Google Images&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;We start with importing the main required libraries and data:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(magrittr)
+library(car)
+library(broom)
+library(ggplot2)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;insurance &amp;lt;- read.csv(&amp;#39;~/Documents/CodeWork/medicalCost/insurance.csv&amp;#39;)
+summary(insurance)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;      age            sex           bmi           children     smoker    
+ Min.   :18.00   female:662   Min.   :15.96   Min.   :0.000   no :1064  
+ 1st Qu.:27.00   male  :676   1st Qu.:26.30   1st Qu.:0.000   yes: 274  
+ Median :39.00                Median :30.40   Median :1.000             
+ Mean   :39.21                Mean   :30.66   Mean   :1.095             
+ 3rd Qu.:51.00                3rd Qu.:34.69   3rd Qu.:2.000             
+ Max.   :64.00                Max.   :53.13   Max.   :5.000             
+       region       charges     
+ northeast:324   Min.   : 1122  
+ northwest:325   1st Qu.: 4740  
+ southeast:364   Median : 9382  
+ southwest:325   Mean   :13270  
+                 3rd Qu.:16640  
+                 Max.   :63770  &lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Some simple observations that can be made from the summary are:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;The age of participants varies from 18 to 64.&lt;/li&gt;
+&lt;li&gt;Around 49.48% of participants are female.&lt;/li&gt;
+&lt;li&gt;The bmi of participants ranges from 15.96 to 53.13.&lt;/li&gt;
+&lt;li&gt;Only 20.48% of the participants are smokers.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Let’s start with building a linear model. Instead of simple linear regression, where you have one predictor and one outcome, we will go with multiple linear regression, where you have more than one predictors and one outcome.&lt;/p&gt;
+&lt;p&gt;Multiple linear regression follows the formula :&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math inline&#34;&gt;\(y = {\beta_0}+ {\beta_1}x_1+{\beta_2}x_2+...\)&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The coefficients in this linear equation denote the magnitude of additive relation between the predictor and the response. In simpler words, keeping everything else fixed, a unit change in &lt;span class=&#34;math inline&#34;&gt;\(x_1\)&lt;/span&gt; will lead to change of &lt;span class=&#34;math inline&#34;&gt;\({\beta_1}\)&lt;/span&gt; in the outcome, and so on.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;is-there-a-relationship-between-the-medical-charges-and-the-predictors&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Is there a relationship between the medical charges and the predictors?&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Our first step is finding if there is any relationship between the outcome and the predictors.&lt;/p&gt;
+&lt;p&gt;The null hypothesis would be that there is no relation between any of the predictors and the response, which can be tested by computing the &lt;a href=&#34;http://www.statisticshowto.com/probability-and-statistics/F%20statistic-value-test/&#34; target=&#34;_blank&#34;&gt;F statistic&lt;/a&gt;. The p-value of F statistic can be used to determine whether the null hypothesis can be rejected or not.&lt;/p&gt;
+&lt;p&gt;We will start with fitting a multiple linear regression model using all the predictors:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lm.fit &amp;lt;- lm(formula = charges~., data = insurance)
+#Here &amp;#39;.&amp;#39; means we are using all the predictors in the dataset.
+summary(lm.fit)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;
+Call:
+lm(formula = charges ~ ., data = insurance)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-11304.9  -2848.1   -982.1   1393.9  29992.8 
+
+Coefficients:
+                Estimate Std. Error t value Pr(&amp;gt;|t|)    
+(Intercept)     -11938.5      987.8 -12.086  &amp;lt; 2e-16 ***
+age                256.9       11.9  21.587  &amp;lt; 2e-16 ***
+sexmale           -131.3      332.9  -0.394 0.693348    
+bmi                339.2       28.6  11.860  &amp;lt; 2e-16 ***
+children           475.5      137.8   3.451 0.000577 ***
+smokeryes        23848.5      413.1  57.723  &amp;lt; 2e-16 ***
+regionnorthwest   -353.0      476.3  -0.741 0.458769    
+regionsoutheast  -1035.0      478.7  -2.162 0.030782 *  
+regionsouthwest   -960.0      477.9  -2.009 0.044765 *  
+---
+Signif. codes:  0 &amp;#39;***&amp;#39; 0.001 &amp;#39;**&amp;#39; 0.01 &amp;#39;*&amp;#39; 0.05 &amp;#39;.&amp;#39; 0.1 &amp;#39; &amp;#39; 1
+
+Residual standard error: 6062 on 1329 degrees of freedom
+Multiple R-squared:  0.7509,    Adjusted R-squared:  0.7494 
+F-statistic: 500.8 on 8 and 1329 DF,  p-value: &amp;lt; 2.2e-16&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;A high value of F statistic, with a very low p-value (&amp;lt;2.2e-16), implies that the null hypothesis can be rejected. This means there is a potential relationship between the predictors and the outcome.&lt;/p&gt;
+&lt;p&gt;RSE (Residual Standard Error) is the estimate of the standard deviation of irreducible error (the error which can’t be reduced even if we knew the true regression line; hence, irreducible). In simpler words, it is the average deviation between the actual outcome and the true regression line. A large value of RSE (6062) means a high deviation of our model from the true regression line.&lt;/p&gt;
+&lt;p&gt;R-squared (&lt;span class=&#34;math inline&#34;&gt;\(R^2\)&lt;/span&gt;) measures the proportion of variability in the outcome that can be explained by the model, and is &lt;a href=&#34;https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative&#34; target=&#34;_blank&#34;&gt;almost always between 0 and 1&lt;/a&gt;; the higher the value, the better the model is able to explain the variability in the outcome. However, increase in number of predictors mostly results in an increased value of &lt;span class=&#34;math inline&#34;&gt;\(R^2\)&lt;/span&gt; due to &lt;a href=&#34;https://en.wikipedia.org/wiki/Coefficient_of_determination#Inflation_of_R2&#34; target=&#34;_blank&#34;&gt;inflation of R-squared&lt;/a&gt;. &lt;a href=&#34;https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2&#34; target=&#34;_blank&#34;&gt;Adjusted R-squared&lt;/a&gt; adjusts the value of &lt;span class=&#34;math inline&#34;&gt;\(R^2\)&lt;/span&gt; to avoid this effect. A high value of adjusted &lt;span class=&#34;math inline&#34;&gt;\(R^2\)&lt;/span&gt; (0.7494) shows that more than 74% of the variance in the data is being explained by the model.&lt;/p&gt;
+&lt;p&gt;The Std. Error gives us the average amount that the estimated coefficient of a predictor differs from the actual coefficient of predictor. It can be used to compute the confidence interval of an estimated coefficient, which we will see later.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;t value&lt;/em&gt; of a predictor tells us how many standard deviations its estimated coefficient is away from 0. &lt;em&gt;Pr (&amp;gt;|t|)&lt;/em&gt; for a predictor is the p-value for the estimated regression coefficient, which is same as saying what is the probability of seeing a t value for the regression coefficient. A very low p-value (&amp;lt;0.05) for a predictor can be used to infer that there is a relationsip between the predictor and the outcome.&lt;/p&gt;
+&lt;p&gt;Our next step should be &lt;a href=&#34;https://en.wikipedia.org/wiki/Regression_validation&#34; target=&#34;_blank&#34;&gt;validation of regression analysis&lt;/a&gt;. This may mean validation of underlying assumptions of the model, checking the structure of model with different predictors, looking for observations that have not been represented well enough in the model, and more. We will look at a few of these methods and assumptions.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;which-variables-have-a-strong-relation-to-medical-charges&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Which variables have a strong relation to medical charges?&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Now that we have determined that there is a relation between the predictors and the outcome, our next step would be finding out if all or only some of the predictors are related to the outcome.&lt;/p&gt;
+&lt;p&gt;If we look at the p-values of the estimated coefficients above, we see that not all the coefficients are statistically significant (&amp;lt;0.05). This means that only a subset of the predictors are related to the outcome.&lt;/p&gt;
+&lt;p&gt;We can look at the individual p-values for selecting the variables. This may not be a problem when the number of predictors (7) is quite small compared to the number of observations (1338). This method won’t, however, work when the number of predictors is greater than the number of observations because of the &lt;a href=&#34;http://www.statisticshowto.com/multiple-testing-problem/&#34; target=&#34;_blank&#34;&gt;multiple testing problem&lt;/a&gt;. A better way of selecting predictors is &lt;a href=&#34;https://en.wikipedia.org/wiki/Feature_selection&#34; target=&#34;_blank&#34;&gt;feature/variable selection&lt;/a&gt; methods, like forward selection, backward selection, or mixed selection.&lt;/p&gt;
+&lt;p&gt;Before jumping on to feature selection using any of these methods, let us try linear regression using the features with significant p-values only.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lm.fit.sel &amp;lt;- lm(charges~age+bmi+children+smoker+region, data = insurance)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We will compare this to &lt;a href=&#34;https://www.stat.ubc.ca/~rollin/teach/643w04/lec/node43.html&#34; target=&#34;_blank&#34;&gt;mixed selection&lt;/a&gt;, which is a combination of forward and backward selection. This can be done in R using the &lt;em&gt;stepAIC()&lt;/em&gt; function, which uses &lt;a href=&#34;https://en.wikipedia.org/wiki/Akaike_information_criterion&#34; target=&#34;_blank&#34;&gt;Akaike Information Criterion&lt;/a&gt; (AIC) to select the best model out of multiple models.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#selecting direction = &amp;quot;both&amp;quot; for mixed selection
+step.lm.fit &amp;lt;- MASS::stepAIC(lm.fit, direction = &amp;quot;both&amp;quot;, trace = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s compare the two models :&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;step.lm.fit$call&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;lm(formula = charges ~ age + bmi + children + smoker + region, 
+    data = insurance)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lm.fit.sel$call&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;lm(formula = charges ~ age + bmi + children + smoker + region, 
+    data = insurance)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The model given by stepwise selection is same as the model we got by selecting the predictors with significant p-values (works in this case).&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;are-there-any-multicollinear-features&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Are there any multicollinear features?&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Multicollinearity in multiple regression is a phenomenon in which two or more predictors are highly related to each other, and hence one predictor can be used to predict the value of the other. The problem with multi-collinearity is that it can make it harder to estimate the individual effects of the predictors on the outcome.&lt;/p&gt;
+&lt;p&gt;Multicollinearity can be detected using the Variance Inflation Factor (VIF). VIF of any predictor is the ratio of variance of its estimated coefficient in the full model to the variance of its estimated coefficient when fit on the outcome only by itself (as in simple linear regression). A VIF of 1 indicates no presence of multicollinearity. Usually, a VIF value of above 5 or 10 is taken as an indicator of multicollinearity. The simplest way of getting rid of multicollinearity in that case is to discard the predictor with high value of VIF.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;vif(step.lm.fit) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;GVIF&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;Df&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;GVIF^(1/(2*Df))&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;age&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.016188&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.008061&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td&gt;bmi&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.104197&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.050808&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;children&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.003714&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.001855&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td&gt;smoker&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.006369&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.003179&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td&gt;region&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.098869&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.015838&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;None of the predictors in our case has a high value of VIF. Hence, we don’t need to worry about multicollinearity in our case.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multicollinearity%20meme.jpg&#34; alt=&#34;Source: Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Source: Google Images&lt;/p&gt;
+&lt;/div&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;is-the-relationship-linear&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Is the relationship linear?&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;By applying linear regression, we are assuming that there is a linear relationship between the predictors and the outcome. If the underlying relationship is quite far from linear, then most of the inferences we would make would be doubtful.&lt;/p&gt;
+&lt;p&gt;The non-linearity of the model can be determined using the residual plot of fitted values versus the residuals. &lt;a href=&#34;http://www.statisticshowto.com/residual/&#34; target=&#34;_blank&#34;&gt;Residual&lt;/a&gt; for any observation is the difference between the actual outcome and the fitted outcome as per the model. Presence of a pattern in the residual plot would imply a problem with the linear assumption of the model.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#type = &amp;quot;rstandard&amp;quot; draws a plot for standardized residuals
+residualPlot(step.lm.fit, type = &amp;quot;rstandard&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-8-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;The blue line represents a smooth pattern between the fitted values and the standard residuals. The curve in our case denotes slight non-linearity in our data.&lt;/p&gt;
+&lt;p&gt;The non-linearity can be further explored by looking at &lt;a href=&#34;https://www.r-bloggers.com/r-regression-diagnostics-part-1/&#34; target=&#34;_blank&#34;&gt;Component Residual plots&lt;/a&gt; (CR plots).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ceresPlots(step.lm.fit)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-9-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;The pink line (residual line) is modelled for the relation between the predictor and the residuals. The blue dashed line (component line) is for the line of best fit. A significant difference between the two lines for a predictor implies that the predictor and the outcome don’t have a linear relationship.&lt;/p&gt;
+&lt;p&gt;This kind of inconsistency can be seen in the CR plot for &lt;em&gt;bmi&lt;/em&gt;. One of the methods of fixing this is introducing non-linear transformation of predictors of the model. Let’s try adding a non-linear transformation of &lt;em&gt;bmi&lt;/em&gt; to the model.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#update() can be used to update an existing model with new requirements
+step.lm.fit.new &amp;lt;- update(step.lm.fit, .~.+I(bmi^1.25))
+
+ceresPlots(step.lm.fit.new)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-10-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;The CR plot of bmi no more has a difference between the residual line and the component line.&lt;/p&gt;
+&lt;p&gt;We can use ANOVA to check if the new model is significantly better than the previous model. A low p-value (&amp;lt;0.05) for the new model will mean we can conclude that it is better than the previous model:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;anova(step.lm.fit, step.lm.fit.new, test = &amp;quot;F&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Analysis of Variance Table
+
+Model 1: charges ~ age + bmi + children + smoker + region
+Model 2: charges ~ age + bmi + children + smoker + region + I(bmi^1.25)
+  Res.Df        RSS Df Sum of Sq      F  Pr(&amp;gt;F)  
+1   1330 4.8845e+10                              
+2   1329 4.8697e+10  1 148484981 4.0524 0.04431 *
+---
+Signif. codes:  0 &amp;#39;***&amp;#39; 0.001 &amp;#39;**&amp;#39; 0.01 &amp;#39;*&amp;#39; 0.05 &amp;#39;.&amp;#39; 0.1 &amp;#39; &amp;#39; 1&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Since the model with non-linear transformation of &lt;em&gt;bmi&lt;/em&gt; has a sufficiently low p-value (&amp;lt;0.05), we can conclude that it is better than the previous model, although the p-value is marginally.&lt;/p&gt;
+&lt;p&gt;Let’s look at the residual plot of this new model.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;residualPlot(step.lm.fit.new, type = &amp;quot;rstandard&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Looking at the residual plot of the new model, there is not much change in the overall pattern of the standard residuals.&lt;/p&gt;
+&lt;div class=&#34;figure&#34;&gt;
+&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multiple-regression-more-like-multiple-depression.jpg&#34; alt=&#34;Source: Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;Source: Google Images&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;Another method of fixing the problem of non-linearity is introducing an &lt;a href=&#34;https://en.wikipedia.org/wiki/Interaction_(statistics)#In_regression&#34; target=&#34;_blank&#34;&gt;interaction&lt;/a&gt; between some predictors. A person who smokes and has a high bmi may have higher charges as compared to a person who has lower bmi and is a non-smoker. Let’s update the model to introduce an interaction between &lt;em&gt;bmi&lt;/em&gt; and &lt;em&gt;smoker&lt;/em&gt;, and see if that makes a difference:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lm.fit1 &amp;lt;- update(step.lm.fit.new, ~ .+bmi*smoker)
+
+residualPlot(lm.fit1, type = &amp;quot;rstandard&amp;quot;, id=TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-13-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;anova(step.lm.fit.new, lm.fit1, test = &amp;quot;F&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Analysis of Variance Table
+
+Model 1: charges ~ age + bmi + children + smoker + region + I(bmi^1.25)
+Model 2: charges ~ age + bmi + children + smoker + region + I(bmi^1.25) + 
+    bmi:smoker
+  Res.Df        RSS Df  Sum of Sq      F    Pr(&amp;gt;F)    
+1   1329 4.8697e+10                                   
+2   1328 3.1069e+10  1 1.7627e+10 753.45 &amp;lt; 2.2e-16 ***
+---
+Signif. codes:  0 &amp;#39;***&amp;#39; 0.001 &amp;#39;**&amp;#39; 0.01 &amp;#39;*&amp;#39; 0.05 &amp;#39;.&amp;#39; 0.1 &amp;#39; &amp;#39; 1&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Not only the relation becomes more linear with less appearance of a pattern in the residual plot, the new model is significantly better than the previous model (without interactions) as can be seen with the p-value (&amp;lt;2.2e-16).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#checking the value of adjusted r-squared of new model
+summary(lm.fit1)$adj.r.squared&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;[1] 0.840469&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The &lt;span class=&#34;math inline&#34;&gt;\(R^2\)&lt;/span&gt; value of the model has also increased to more than 0.84.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;non-constant-variance-of-error-terms&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Non-constant variance of error terms&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Constant variance (&lt;a href=&#34;https://en.wikipedia.org/wiki/Homoscedasticity&#34; target=&#34;_blank&#34;&gt;homoscedasticity&lt;/a&gt;) of errors is another assumption of a linear regression model. The error terms may, for instance, change with the value of the response variable in case of non-constant variance (heteroscedasticity) of errors. Some of the graphical methods of identifying heteroscedasticity is presence of a funnel shape in the residual plot, or existence of a curve in the residual plot. In the above plot, we don’t see any clear pattern.&lt;/p&gt;
+&lt;p&gt;A statistical way is an extension of the Breusch-Pagan Test, available in R as &lt;em&gt;ncvTest()&lt;/em&gt; in the cars package. It assumes a null hypothesis of constant variance of errors against the alternate hypothesis that the error variance changes with the level of the response or with a linear combination of predictors.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# non-constant error variance test
+ncvTest(lm.fit1)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Non-constant Variance Score Test 
+Variance formula: ~ fitted.values 
+Chisquare = 17.90486, Df = 1, p = 2.3223e-05&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;A very low p-value (~&lt;span class=&#34;math inline&#34;&gt;\(2.3*10^{-5}\)&lt;/span&gt;) means the null hypothesis can be rejected. In other words, there is a high chance that the errors have a non-constant variance.&lt;/p&gt;
+&lt;p&gt;One of the methods to fix this problem is transformation of the outcome variable.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;yTransformer &amp;lt;- 0.8
+trans.lm.fit &amp;lt;- update(lm.fit1, charges^yTransformer~.)
+
+# non-constant error variance test
+ncvTest(trans.lm.fit)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;Non-constant Variance Score Test 
+Variance formula: ~ fitted.values 
+Chisquare = 0.005724708, Df = 1, p = 0.93969&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;residualPlot(trans.lm.fit, type = &amp;quot;rstandard&amp;quot;, id=T)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-16-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;A p-value of ~0.94 implies here that we cannot reject the null hypothesis of constant variance of error terms. However, there is a slight increase in non-linearity of the model as can be seen in the residual plot. This can be fixed further by looking at relations between individual predictors and outcome.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;correlation-of-error-terms&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Correlation of error terms&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;An important assumption of linear regression model is that the consecutive error terms are uncorrelated. The standard errors of the estimated regression coefficients are calculated on the basis of this assumption. If the consecutive error terms are correlated, the standard errors of the estimated regression coefficients may be much larger.&lt;/p&gt;
+&lt;p&gt;We can check the auto-correlation of error terms using the &lt;a href=&#34;https://en.wikipedia.org/wiki/Durbin–Watson_statistic&#34; target=&#34;_blank&#34;&gt;Durbin-Watson test&lt;/a&gt;. The null hypothesis is that the consecutive errors have no auto-correlation.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;set.seed(1)
+# Test for Autocorrelated Errors
+durbinWatsonTest(trans.lm.fit, max.lag = 5, reps=1000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt; lag Autocorrelation D-W Statistic p-value
+   1    -0.036139510      2.070557   0.216
+   2    -0.026396886      2.050927   0.340
+   3    -0.009537725      2.017017   0.712
+   4    -0.004187672      1.996569   0.972
+   5     0.008894177      1.970058   0.680
+ Alternative hypothesis: rho[lag] != 0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The p-value for none of the 5 lags is less than 0.05. Hence, we cannot reject the null hypothesis that the consecutive errors are not correlated, concluding that the consecutive errors are independent of each other.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;interpretations&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Interpretations&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;Let’s look at the actual charges vs fitted values for the final model and compare it with the results from the initial model:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#function to plot fitted values vs actual values of charges
+fitted_vs_actual &amp;lt;- function(predictions, title){
+  ggplot(predictions, aes(x=insurance$charges, y=fit))+
+  geom_point()+
+  geom_smooth(aes(color = &amp;#39;model&amp;#39;))+
+  geom_line(aes(x=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                y=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                color = &amp;#39;ideal&amp;#39;))+
+  labs(x=&amp;quot;actual charges&amp;quot;, y=&amp;quot;fitted values&amp;quot;) + 
+  scale_color_manual(&amp;#39;linear relation&amp;#39;, values = c(&amp;#39;red&amp;#39;, &amp;#39;blue&amp;#39;)) +
+  theme(legend.position = c(0.25, 0.8))+
+    ggtitle(title)
+}
+
+#fitted values of initial model
+fitted_init &amp;lt;- predict(lm.fit, insurance, interval = &amp;quot;confidence&amp;quot;) %&amp;gt;%
+  tidy()
+g1 &amp;lt;- fitted_vs_actual(fitted_init, &amp;quot;Initial Model&amp;quot;)
+
+#fitted values of final model
+fitted_final &amp;lt;- predict(trans.lm.fit, insurance, 
+                             interval = &amp;quot;confidence&amp;quot;)^(1/yTransformer) %&amp;gt;%
+  tidy()
+g2 &amp;lt;- fitted_vs_actual(fitted_final, &amp;quot;Final Model&amp;quot;)
+
+#creating the two plots side-by-side
+gridExtra::grid.arrange(g1,g2, ncol = 2)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-18-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;The initial model is able to approximate the actual charges below 17,000 USD, but as the actual charges go above 20,000 USD, the gap between actual charges and fitted values keeps increasing. As per the initial model, the actual charges near 50,000 USD are fitted as somewhere near or below 40,000 USD, and this gap keeps increasing upwards.&lt;/p&gt;
+&lt;p&gt;In comparison, the fitted values in the new model are much closer to the actual charges, although there is still a lot of variation not explained by this model. It is still a major improvement from the initial model.&lt;/p&gt;
+&lt;p&gt;We can look at the estimated coefficients of the predictors and their confidence intervals for interpretation on how they define the model.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;confint(trans.lm.fit) %&amp;gt;%
+  tidy() %&amp;gt;%
+  tibble::add_column(coefficients = trans.lm.fit$coefficients, .after = 2) %&amp;gt;%
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;.rownames&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;X2.5..&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;coefficients&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;X97.5..&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;(Intercept)&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-2390.28154&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1481.25919&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-572.236841&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;age&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;31.55889&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;33.69202&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;35.825159&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;bmi&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;88.38395&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;236.34998&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;384.316015&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;children&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;46.47332&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;71.13811&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;95.802903&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;smokeryes&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-2132.65819&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1763.80972&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1394.961241&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;regionnorthwest&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-167.70823&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-82.26111&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.186011&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;regionsoutheast&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-234.48716&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-148.75323&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-63.019309&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;regionsouthwest&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-243.32648&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-157.63822&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-71.949962&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;I(bmi^1.25)&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-129.18844&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-79.06113&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-28.933829&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;bmi:smokeryes&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;132.95041&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;144.72423&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;156.498040&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;In the above table, the X2.5 and X97.5 mark the lower and upper bounds for the 95% confidence interval of the regression coefficients. These are calculated using the standard errors of the estimated coefficients. As an example, for &lt;em&gt;age&lt;/em&gt;, the estimated coefficient is ~33.69 and the 95% confidence interval lies between ~31.56 and ~35.83. This means that as per the model, keeping everything else fixed, an increase in 1 year of age will result in an increase of 33.69 in the value of &lt;span class=&#34;math inline&#34;&gt;\(charges^{0.8}\)&lt;/span&gt; (since we transformed the outcome). However, this is an estimate and hence there is a scope for variation. This variation is accounted for by the confidence interval, denoting that about 95% of the times, the change in the value of &lt;span class=&#34;math inline&#34;&gt;\(charges^{0.8}\)&lt;/span&gt; will be between 31.56 and 35.83, keeping everything else fixed.&lt;/p&gt;
+&lt;p&gt;Let’s visualize these effects to get a better understanding of how the predictors are related to the outcome as per the model.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#funtion to get model effects on transformed outcome
+plot_effect &amp;lt;- function(interaction, xpredictor){
+  #get effects for predictor
+  effs &amp;lt;- effects::effect(interaction, mod = trans.lm.fit, 
+                 xlevels = list(xpredictor=min(insurance[xpredictor]):max(insurance[xpredictor])))
+  
+  model.effs &amp;lt;- effs[c(&amp;#39;x&amp;#39;, &amp;#39;lower&amp;#39;, &amp;#39;fit&amp;#39;, &amp;#39;upper&amp;#39;)] %&amp;gt;%
+    as.data.frame()
+  
+  model.effs$fit &amp;lt;- model.effs$fit^(1/yTransformer)
+  model.effs$lower &amp;lt;- model.effs$lower^(1/yTransformer)
+  model.effs$upper &amp;lt;- model.effs$upper^(1/yTransformer)
+  
+  return(model.effs)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_effect(&amp;#39;age&amp;#39;, &amp;#39;age&amp;#39;) %&amp;gt;%
+  ggplot(aes(x = age, y = fit)) +
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-21-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;For an average value of other predictors, insurance charges increase with increase in age. More interesting effects can be seen for the interaction between &lt;em&gt;bmi&lt;/em&gt; and &lt;em&gt;smoker&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;plot_effect(&amp;#39;bmi*smoker&amp;#39;, &amp;#39;bmi&amp;#39;) %&amp;gt;%
+  ggplot(aes(x = x.bmi, y = fit)) +
+  facet_wrap(~x.smoker)+
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/figure-html/unnamed-chunk-22-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Non-smokers, irrespective of their bmi, have mostly low insurance charges for an average value of other predictors. Smokers with low bmi have low insurance charges, though still higher than non-smokers with any value of bmi. Moreover, as their bmi increases, the insurance charges of smokers increases rapidly.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusion&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/h2&gt;
+&lt;p&gt;The model we have built can be used for inference of how the different predictors influence the outcome. It is far from perfect. Their is still presence of non-linearity and non-constant variance of errors. Moreover, the outliers and leverage points should be analyzed to find a better model. It may not (and most probably won’t) give similar results when used to predict the outcome for new, unseen data. In order to use it for prediction, more concrete measures should be taken for ensuring the accuracy of the model, like cross-validation. It still helps by providing good estimations of the significant relations between the predictors and the outcome. These estimations can be used to summarize the data in a more useful and presentful way.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;/div&gt;
+&lt;div id=&#34;sources&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;&lt;strong&gt;Sources&lt;/strong&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;An Introduction to Statistical Learning, with Application in R. By James, G., Witten, D., Hastie, T., Tibshirani, R.&lt;/li&gt;
+&lt;li&gt;Wikipedia&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.statmethods.net&#34; target=&#34;_blank&#34;&gt;Quick-R&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.statisticshowto.com&#34; target=&#34;_blank&#34;&gt;Statistics How To&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative#&#34; target=&#34;_blank&#34;&gt;StackExchange&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stackoverflow.com&#34; target=&#34;_blank&#34;&gt;Stack Overflow&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Twitter Engine</title>
+      <link>/project/twitter-engine/</link>
+      <pubDate>Wed, 02 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/project/twitter-engine/</guid>
+      <description>
+
+&lt;h2 id=&#34;overview&#34;&gt;&lt;strong&gt;Overview&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;The application can be seen at &lt;a href=&#34;https://github.com/krohitm/Twitter-Simulator&#34; target=&#34;_blank&#34;&gt;https://github.com/krohitm/Twitter-Simulator&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this project, we implemented a Twitter Clone and a client tester/simulator.&lt;/p&gt;
+
+&lt;p&gt;As part I of this project, we built an engine that (in &lt;a href=&#34;https://didyousaydata.xyz/project/twitter-simulator/&#34; target=&#34;_blank&#34;&gt;part II&lt;/a&gt;) will be paired up with WebSockets to provide full functionality. Specific things done in this project are:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Implemented a Twitter like engine with the following functionality:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Register account.&lt;/li&gt;
+&lt;li&gt;Send tweet. Tweets can have hashtags and mentions.&lt;/li&gt;
+&lt;li&gt;Subscribe to user&amp;rsquo;s tweets.&lt;/li&gt;
+&lt;li&gt;Re-tweets (so that your subscribers get an interesting tweet you got by other means).&lt;/li&gt;
+&lt;li&gt;Allow querying tweets subscribed to, tweets with specific hashtags, tweets in which the user is mentioned (my mentions).&lt;/li&gt;
+&lt;li&gt;If the user is connected, deliver the above types of tweets live (without querying)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Implemented a tester/simulator to test the above:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Simulated more than 5000 users on a 64-bit i5 Macbook Pro with 8GB RAM.&lt;/li&gt;
+&lt;li&gt;Simulated periods of live connection and disconnection for users&lt;/li&gt;
+&lt;li&gt;Simulated a Zipf distribution on the number of subscribers. For accounts with a lot of subscribers, increased the number of tweets. Made some of these messages re-tweets.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;client-server&#34;&gt;&lt;strong&gt;Client-Server&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;A client upon connection is able to write tweets as well as search tweets with hashtags and mentions. Tweets contain randomly generated hashtags. Every tweet contains a random mention of another user, chosen by the simulator. A client can also log itself off and upon login receive its tweets. Also, clients are able to retweet.&lt;/p&gt;
+
+&lt;p&gt;The client part (send/receive tweets) and the engine (distribute tweets) are separate processes. We used multiple independent client processes that simulate thousands of clients and a single engine process.&lt;/p&gt;
+
+&lt;h2 id=&#34;simulator&#34;&gt;&lt;strong&gt;Simulator&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The Simulator is a separate process and dictates what requests clients can send.&lt;/li&gt;
+&lt;li&gt;The simulator initially spawns a given number(n) of clients. These clients register themselves with the server by sending requests.&lt;/li&gt;
+&lt;li&gt;Once the clients are registered, the simulator gives each client the number of users that will follow that user. These numbers are decided using Zipf distribution. In our application, the most subscribed user will have n-1 followers, the second most subscribed has (n-1)/2 no. of followers, and so on, as per the Zipf distribution.&lt;/li&gt;
+&lt;li&gt;Once the registrations and subscriptions have been done, the clients, independently, start sending tweets. The rate of tweets sent by each user depends upon the no. of subscribers the client has. The more the number of subscribers of a user, the lower the interval in sending tweets.&lt;/li&gt;
+&lt;li&gt;Each user, after a certain number of tweets, sends a random request to the server which may be searching for tweets of all users it has subscribed to, searching for certain hashtags, searching for its mentions, or retweeting a tweet. After the random request, the user continues the same cycle.&lt;/li&gt;
+&lt;li&gt;Each user, after a certain number of tweets, logs out of the system for x seconds. During this time, the user doesn’t send out any requests. Once reconnected, the user asks server for the tweets of the users it has subscribed to.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;running-the-project&#34;&gt;&lt;strong&gt;Running the Project&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Run epmd -daemon&lt;/li&gt;
+&lt;li&gt;Build the application using mix escript.build&lt;/li&gt;
+&lt;li&gt;Run the server using the command: ./project server&lt;/li&gt;
+&lt;li&gt;On the same machine, run the simulator using the command: ./project simulator &lt;number of users&gt;
+where &lt;number of users&gt; is the number of users you want to simulate. Example: ./project simulator 10000&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;performance&#34;&gt;&lt;strong&gt;Performance&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;The tests were run on a 64-bit i5 machine with 8GB RAM.
+&lt;img src=&#34;https://user-images.githubusercontent.com/10449636/34135026-205a432a-e42c-11e7-901b-92f75b20b2bb.png&#34; alt=&#34;image&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;database-performance&#34;&gt;&lt;strong&gt;Database performance&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Databases are ETS tables. These tables are public to all the server processes (not the client processes, since client runs on a different node).&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Read concurrency - search requests are handled by the 1000 concurrent read actors.
+This has been enabled when we create the ETS tables for tweets.&lt;/li&gt;
+&lt;li&gt;Write concurrency - this flag has also been set to true to enable 2 write actors to write at the same time.
+These flags allow us to take advantage or Elixir’s concurrency and handle more database reads.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;architecture-and-notes&#34;&gt;&lt;strong&gt;Architecture and Notes&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;The Server has been designed to distribute the load of incoming tweet requests.  Requests coming to the server can be of the following form:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Write a tweet and send it to followers&lt;/li&gt;
+&lt;li&gt;Search a particular tweet with certain properties&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The server is an Erlang Node which is connected to client and has the PID of the client processes which are running on a different node.&lt;/p&gt;
+
+&lt;p&gt;The server maintains data about the clients in the form of ETS tables.
+Actor on Server:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Read Actor:
+At present we have 1000 actors that receive a read request from clients. The server distributes read/search requests to one of these actors.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Write Actor:
+We have kept only 2 write actors at the moment that do the job of writing data to the respective database once a tweet request has been received.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;further-updates&#34;&gt;&lt;strong&gt;Further Updates&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;This project was &lt;a href=&#34;https://didyousaydata.xyz/project/twitter-simulator/&#34; target=&#34;_blank&#34;&gt;further updated&lt;/a&gt; to implement a WebSocket interface using Phoenix web framework.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>The Intelligent ICU Pilot Study: Using Artificial Intelligence Technology for Autonomous Patient Monitoring</title>
+      <link>/publication/intelligent-icu/</link>
+      <pubDate>Wed, 25 Apr 2018 00:00:00 -0500</pubDate>
+      
+      <guid>/publication/intelligent-icu/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Autonomous detection of disruptions in the intensive care unit using deep mask RCNN</title>
+      <link>/publication/autonomus-detection/</link>
+      <pubDate>Sun, 15 Apr 2018 00:00:00 -0500</pubDate>
+      
+      <guid>/publication/autonomus-detection/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Twitter Simulator</title>
+      <link>/project/twitter-simulator/</link>
+      <pubDate>Mon, 09 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/project/twitter-simulator/</guid>
+      <description>
+
+&lt;h2 id=&#34;overview&#34;&gt;&lt;strong&gt;Overview&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Link to demo video: &lt;a href=&#34;https://youtu.be/XlY2eoI5o-8&#34; target=&#34;_blank&#34;&gt;https://youtu.be/XlY2eoI5o-8&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Part I of this project can be seen at &lt;a href=&#34;https://github.com/krohitm/Twitter-Simulator&#34; target=&#34;_blank&#34;&gt;https://github.com/krohitm/Twitter-Simulator&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&#34;https://didyousaydata.xyz/project/twitter-engine/&#34; target=&#34;_blank&#34;&gt;part I&lt;/a&gt; of our project had all the functionalities working. In part II, we have used Phoenix web framework to implement a WebSocket interface to our part I implementation. This implementation was achieved by fulfilling the following tasks:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Designed a JSON based API that represents all messages and their replies (including errors).&lt;/li&gt;
+&lt;li&gt;Re-wrote our engine using Phoenix to implement the WebSocket interface.&lt;/li&gt;
+&lt;li&gt;Re-wrote our client to use WebSockets.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;We have used the exact same server that acts as an API to the Phoenix channels (check &lt;a href=&#34;https://github.com/adityavhegde/Twitter-Simulator#architecture-and-notes&#34; target=&#34;_blank&#34;&gt;architecture&lt;/a&gt; section for details). This Server that acts as API can handle all the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Tweeting to followers&lt;/li&gt;
+&lt;li&gt;Searching tweets - tweets, tweets with hashtags, tweets with mentions&lt;/li&gt;
+&lt;li&gt;Retweet a tweet that a user receives&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We have broken down the implementation into two parts:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;A few simple clients, that when connected to localhost, make a socket connection to the server&lt;/li&gt;
+&lt;li&gt;Simulator: A socket.js file that opens 1000 websocket connections to the server and does the job of simulating tweets, retweets and the various searches.&lt;br /&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;simulator&#34;&gt;&lt;strong&gt;Simulator&lt;/strong&gt;:&lt;/h2&gt;
+
+&lt;p&gt;Simulator runs through the sockets in a loop. That does not mean that only one socket is occupied at a time. The server actors for tweets, retweets, search are constantly running in the background and pushing payloads to active sockets. Thus, our simulation is creating sockets which are constantly active, which is also what we are trying to achieve in our simulation.&lt;/p&gt;
+
+&lt;p&gt;The simulator opens 1000 websockets to the server, each as a new user. These users are then registered, and are given subscribers according to zipf distribution, as in part 1. After this, each of these users send tweets, search for tweets, search for hashtags, and search for mentions, choosing one of these behaviors, randomly. This cycle runs infinitely for each user/websocket.&lt;/p&gt;
+
+&lt;h2 id=&#34;client-side&#34;&gt;&lt;strong&gt;Client Side&lt;/strong&gt;:&lt;/h2&gt;
+
+&lt;p&gt;The server is accessed by running localhost:4000 in the browser. This leads to creation of a websocket, which is basically a new user in our case. A new user can give its username(a new one), subscribe to another user, send tweets, query for its mentions, search for hashtags, query for tweets of users it has subscribed to, and retweet the tweets it can see in its feed. These features can be seen in Fig. 1. An example of application of these features can be seen in Fig. 2.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://user-images.githubusercontent.com/13625549/34135581-905fb364-e42f-11e7-9b95-05680bb8d56b.png&#34; alt=&#34;alt text&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Fig. 1: Features available to the user. The user can enter a new username, send tweets, subscribe to users, search for tweets of users subscribed to, search for hashtags, search for its mentions, and retweet a tweet in its feed&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://user-images.githubusercontent.com/13625549/34135684-298f40fe-e430-11e7-900f-506fc2ad1cbd.png&#34; alt=&#34;alt text&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Fig.2: The new user has given its username as aditya and subscribed to user rohit. It receives tweets by user rohit (hello world!), can retweet, gets results for query for tweets of followed users, gets tweet when mentioned, gets search results for mentions, and gets search results for hashtags(#wow).&lt;/p&gt;
+
+&lt;h2 id=&#34;running-this-project&#34;&gt;&lt;strong&gt;Running this project&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Note: please hard reload web page or turn of browser Javascript caching for changes to be visible&lt;/p&gt;
+
+&lt;h3 id=&#34;running-simulator&#34;&gt;&lt;strong&gt;Running Simulator&lt;/strong&gt;:&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Go to assets &amp;gt; js &amp;gt; app.js&lt;/li&gt;
+&lt;li&gt;At the bottom, comment the line import socket from &amp;ldquo;./single_socket&amp;rdquo; , and uncomment the line import socket from &amp;ldquo;./socket&amp;rdquo;. Continue if already so.&lt;/li&gt;
+&lt;li&gt;Currently, 1000 websockets have been setup to run. To change the number of websockets, go to assets &amp;gt; js &amp;gt; socket.js. Go to line 13(let maxClients = 1000) and change the number to desired number of websockets. If you don’t want to change the number of websockets, skip this step.&lt;/li&gt;
+&lt;li&gt;From terminal, run the command mix phx.server. Once the files have compiled, go to next step.&lt;/li&gt;
+&lt;li&gt;Open a browser and run localhost:4000. This will start the given number of websockets.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;running-individual-client&#34;&gt;&lt;strong&gt;Running Individual client&lt;/strong&gt;:&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Go to assets &amp;gt; js &amp;gt;app.js&lt;/li&gt;
+&lt;li&gt;At the bottom, comment the line import socket from &amp;ldquo;./socket&amp;rdquo; , and uncomment the line import socket from &amp;ldquo;./single_socket&amp;rdquo;. Continue if already so.&lt;/li&gt;
+&lt;li&gt;From terminal, run the command mix phx.server. Once the files have compiled, go to next step.&lt;/li&gt;
+&lt;li&gt;Open a browser and run localhost:4000. You can open multiple clients by opening multiple webpages for the given server.&lt;/li&gt;
+&lt;li&gt;Once the webpage opens, give a username to the new user.&lt;/li&gt;
+&lt;li&gt;If you have opened multiple clients and assigned usernames to them, you can ask a user to subscribe to some existing user by entering the username of that user in the enter user to subscribe box, and press enter.&lt;/li&gt;
+&lt;li&gt;You can type a tweet in send tweet box, and press enter to send a tweet. You can mention existing users in these tweets, and any hashtags that you want.&lt;/li&gt;
+&lt;li&gt;When you get a tweet in your feed, you can retweet it by clicking the button retweet under that tweet. The retweeted tweet can be seen in the feed of your followers.&lt;/li&gt;
+&lt;li&gt;You can query for tweets of users you have subscribed to, by clicking the search tweets you are subscribed to button.&lt;/li&gt;
+&lt;li&gt;You can query for your mentions by clicking the search your mentions button.&lt;/li&gt;
+&lt;li&gt;You can search for hashtags by entering a hashtag, with the #symbol, in the search hashtag box, and press enter.&lt;/li&gt;
+&lt;li&gt;You can clear the screen by clicking the clear screen button.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;performance-with-web-sockets&#34;&gt;&lt;strong&gt;Performance with Web Sockets&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;We connected a maximum of 1000 sockets to the server. Additionally, we were also able to run our simulations on these sockets.&lt;/p&gt;
+
+&lt;h2 id=&#34;json-based-api&#34;&gt;&lt;strong&gt;JSON Based API&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;This is not really needed since Phoenix does this for us implicitly. There are two kinds of communication:
+Client to Server: While sending this data, we make sure it is in the JSON format
+Server to Client: For Phoenix to send payload to client, we need to enclose it in a map, which is implicitly converted by Phoenix in a JSON object and sent to the client.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Example Talk</title>
+      <link>/talk/example-talk/</link>
+      <pubDate>Sun, 01 Jan 2017 00:00:00 -0600</pubDate>
+      
+      <guid>/talk/example-talk/</guid>
+      <description>&lt;p&gt;Embed your slides or video here using &lt;a href=&#34;https://sourcethemes.com/academic/post/writing-markdown-latex/&#34; target=&#34;_blank&#34;&gt;shortcodes&lt;/a&gt;. Further details can easily be added using &lt;em&gt;Markdown&lt;/em&gt; and $\rm \LaTeX$ math code.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>/post/2018-09-05-linear-regression-modeling-and-assumptions/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/post/2018-09-05-linear-regression-modeling-and-assumptions/</guid>
+      <description>
+
+&lt;h2 id=&#34;introduction&#34;&gt;&lt;strong&gt;Introduction&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Regression analysis is a powerful statistical process to find the relations within a dataset, with the key focus being on relationships between the independent variables (predictors) and a dependent variable (outcome). It can be used to build models for inference or prediction. Among several methods of regression analysis, linear regression sets the basis and is quite widely used for &lt;a href=&#34;https://en.wikipedia.org/wiki/Linear_regression#Applications&#34; target=&#34;_blank&#34;&gt;several real-world applications&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this post, we will look at building a linear regression model for inference. The dataset we will use is the insurance charges data obtained from &lt;a href=&#34;https://www.kaggle.com/mirichoi0218/insurance/home&#34; target=&#34;_blank&#34;&gt;Kaggle&lt;/a&gt;. This data set consists of 1,338 observations and 7 columns: age, sex, bmi, children, smoker, region and charges.&lt;/p&gt;
+
+&lt;p&gt;The key questions that we would be asking are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Is there a relationship between medical charges and other variables in the dataset?&lt;/li&gt;
+&lt;li&gt;How valid is the model we have built?&lt;/li&gt;
+&lt;li&gt;What can we do to improve the model?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/2120406.jpg&#34; alt=&#34;Source : Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We start with importing the main required libraries and data:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;library(magrittr)
+library(car)
+library(broom)
+library(ggplot2)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;insurance &amp;lt;- read.csv(&#39;~/Documents/CodeWork/medicalCost/insurance.csv&#39;)
+summary(insurance)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;      age            sex           bmi           children     smoker    
+ Min.   :18.00   female:662   Min.   :15.96   Min.   :0.000   no :1064  
+ 1st Qu.:27.00   male  :676   1st Qu.:26.30   1st Qu.:0.000   yes: 274  
+ Median :39.00                Median :30.40   Median :1.000             
+ Mean   :39.21                Mean   :30.66   Mean   :1.095             
+ 3rd Qu.:51.00                3rd Qu.:34.69   3rd Qu.:2.000             
+ Max.   :64.00                Max.   :53.13   Max.   :5.000             
+       region       charges     
+ northeast:324   Min.   : 1122  
+ northwest:325   1st Qu.: 4740  
+ southeast:364   Median : 9382  
+ southwest:325   Mean   :13270  
+                 3rd Qu.:16640  
+                 Max.   :63770  
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Some simple observations that can be made from the summary are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The age of participants varies from 18 to 64.&lt;/li&gt;
+&lt;li&gt;Around 49.48% of participants are female.&lt;/li&gt;
+&lt;li&gt;The bmi of participants ranges from 15.96 to 53.13.&lt;/li&gt;
+&lt;li&gt;Only 20.48% of the participants are smokers.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Let&amp;rsquo;s start with building a linear model. Instead of simple linear regression, where you have one predictor and one outcome, we will go with multiple linear regression, where you have more than one predictors and one outcome.&lt;/p&gt;
+
+&lt;p&gt;Multiple linear regression follows the formula :&lt;/p&gt;
+
+&lt;p&gt;*y* = &lt;em&gt;β&lt;/em&gt;&lt;sub&gt;0&lt;/sub&gt; + &lt;em&gt;β&lt;/em&gt;&lt;sub&gt;1&lt;/sub&gt;&lt;em&gt;x&lt;/em&gt;&lt;sub&gt;1&lt;/sub&gt; + &lt;em&gt;β&lt;/em&gt;&lt;sub&gt;2&lt;/sub&gt;&lt;em&gt;x&lt;/em&gt;&lt;sub&gt;2&lt;/sub&gt; + &amp;hellip;&lt;/p&gt;
+
+&lt;p&gt;The coefficients in this linear equation denote the magnitude of additive relation between the predictor and the response. In simpler words, keeping everything else fixed, a unit change in &lt;em&gt;x&lt;/em&gt;&lt;sub&gt;1&lt;/sub&gt; will lead to change of &lt;em&gt;β&lt;/em&gt;&lt;sub&gt;1&lt;/sub&gt; in the outcome, and so on.&lt;/p&gt;
+
+&lt;h2 id=&#34;is-there-a-relationship-between-the-medical-charges-and-the-predictors&#34;&gt;&lt;strong&gt;Is there a relationship between the medical charges and the predictors?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Our first step is finding if there is any relationship between the outcome and the predictors.&lt;/p&gt;
+
+&lt;p&gt;The null hypothesis would be that there is no relation between any of the predictors and the response, which can be tested by computing the &lt;a href=&#34;http://www.statisticshowto.com/probability-and-statistics/F%20statistic-value-test/&#34; target=&#34;_blank&#34;&gt;F statistic&lt;/a&gt;. The p-value of F statistic can be used to determine whether the null hypothesis can be rejected or not.&lt;/p&gt;
+
+&lt;p&gt;We will start with fitting a multiple linear regression model using all the predictors:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;lm.fit &amp;lt;- lm(formula = charges~., data = insurance)
+#Here &#39;.&#39; means we are using all the predictors in the dataset.
+summary(lm.fit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Call:
+lm(formula = charges ~ ., data = insurance)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-11304.9  -2848.1   -982.1   1393.9  29992.8 
+
+Coefficients:
+                Estimate Std. Error t value Pr(&amp;gt;|t|)    
+(Intercept)     -11938.5      987.8 -12.086  &amp;lt; 2e-16 ***
+age                256.9       11.9  21.587  &amp;lt; 2e-16 ***
+sexmale           -131.3      332.9  -0.394 0.693348    
+bmi                339.2       28.6  11.860  &amp;lt; 2e-16 ***
+children           475.5      137.8   3.451 0.000577 ***
+smokeryes        23848.5      413.1  57.723  &amp;lt; 2e-16 ***
+regionnorthwest   -353.0      476.3  -0.741 0.458769    
+regionsoutheast  -1035.0      478.7  -2.162 0.030782 *  
+regionsouthwest   -960.0      477.9  -2.009 0.044765 *  
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Residual standard error: 6062 on 1329 degrees of freedom
+Multiple R-squared:  0.7509,    Adjusted R-squared:  0.7494 
+F-statistic: 500.8 on 8 and 1329 DF,  p-value: &amp;lt; 2.2e-16
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A high value of F statistic, with a very low p-value (&amp;lt;2.2e-16), implies that the null hypothesis can be rejected. This means there is a potential relationship between the predictors and the outcome.&lt;/p&gt;
+
+&lt;p&gt;RSE (Residual Standard Error) is the estimate of the standard deviation of irreducible error (the error which can&amp;rsquo;t be reduced even if we knew the true regression line; hence, irreducible). In simpler words, it is the average deviation between the actual outcome and the true regression line. A large value of RSE (6062) means a high deviation of our model from the true regression line.&lt;/p&gt;
+
+&lt;p&gt;R-squared (&lt;em&gt;R&lt;/em&gt;&lt;sup&gt;2&lt;/sup&gt;) measures the proportion of variability in the outcome that can be explained by the model, and is &lt;a href=&#34;https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative&#34; target=&#34;_blank&#34;&gt;almost always between 0 and 1&lt;/a&gt;; the higher the value, the better the model is able to explain the variability in the outcome. However, increase in number of predictors mostly results in an increased value of &lt;em&gt;R&lt;/em&gt;&lt;sup&gt;2&lt;/sup&gt; due to &lt;a href=&#34;https://en.wikipedia.org/wiki/Coefficient_of_determination#Inflation_of_R2&#34; target=&#34;_blank&#34;&gt;inflation of R-squared&lt;/a&gt;. &lt;a href=&#34;https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2&#34; target=&#34;_blank&#34;&gt;Adjusted R-squared&lt;/a&gt; adjusts the value of &lt;em&gt;R&lt;/em&gt;&lt;sup&gt;2&lt;/sup&gt; to avoid this effect. A high value of adjusted &lt;em&gt;R&lt;/em&gt;&lt;sup&gt;2&lt;/sup&gt; (0.7494) shows that more than 74% of the variance in the data is being explained by the model.&lt;/p&gt;
+
+&lt;p&gt;The Std. Error gives us the average amount that the estimated coefficient of a predictor differs from the actual coefficient of predictor. It can be used to compute the confidence interval of an estimated coefficient, which we will see later.&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;t value&lt;/em&gt; of a predictor tells us how many standard deviations its estimated coefficient is away from 0. &lt;em&gt;Pr (&amp;gt;|t|)&lt;/em&gt; for a predictor is the p-value for the estimated regression coefficient, which is same as saying what is the probability of seeing a t value for the regression coefficient. A very low p-value (&amp;lt;0.05) for a predictor can be used to infer that there is a relationsip between the predictor and the outcome.&lt;/p&gt;
+
+&lt;p&gt;Our next step should be &lt;a href=&#34;https://en.wikipedia.org/wiki/Regression_validation&#34; target=&#34;_blank&#34;&gt;validation of regression analysis&lt;/a&gt;. This may mean validation of underlying assumptions of the model, checking the structure of model with different predictors, looking for observations that have not been represented well enough in the model, and more. We will look at a few of these methods and assumptions.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;which-variables-have-a-strong-relation-to-medical-charges&#34;&gt;&lt;strong&gt;Which variables have a strong relation to medical charges?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Now that we have determined that there is a relation between the predictors and the outcome, our next step would be finding out if all or only some of the predictors are related to the outcome.&lt;/p&gt;
+
+&lt;p&gt;If we look at the p-values of the estimated coefficients above, we see that not all the coefficients are statistically significant (&amp;lt;0.05). This means that only a subset of the predictors are related to the outcome.&lt;/p&gt;
+
+&lt;p&gt;We can look at the individual p-values for selecting the variables. This may not be a problem when the number of predictors (7) is quite small compared to the number of observations (1338). This method won&amp;rsquo;t, however, work when the number of predictors is greater than the number of observations because of the &lt;a href=&#34;http://www.statisticshowto.com/multiple-testing-problem/&#34; target=&#34;_blank&#34;&gt;multiple testing problem&lt;/a&gt;. A better way of selecting predictors is &lt;a href=&#34;https://en.wikipedia.org/wiki/Feature_selection&#34; target=&#34;_blank&#34;&gt;feature/variable selection&lt;/a&gt; methods, like forward selection, backward selection, or mixed selection.&lt;/p&gt;
+
+&lt;p&gt;Before jumping on to feature selection using any of these methods, let us try linear regression using the features with significant p-values only.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;lm.fit.sel &amp;lt;- lm(charges~age+bmi+children+smoker+region, data = insurance)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We will compare this to &lt;a href=&#34;https://www.stat.ubc.ca/~rollin/teach/643w04/lec/node43.html&#34; target=&#34;_blank&#34;&gt;mixed selection&lt;/a&gt;, which is a combination of forward and backward selection. This can be done in R using the &lt;em&gt;stepAIC()&lt;/em&gt; function, which uses &lt;a href=&#34;https://en.wikipedia.org/wiki/Akaike_information_criterion&#34; target=&#34;_blank&#34;&gt;Akaike Information Criterion&lt;/a&gt; (AIC) to select the best model out of multiple models.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#selecting direction = &amp;quot;both&amp;quot; for mixed selection
+step.lm.fit &amp;lt;- MASS::stepAIC(lm.fit, direction = &amp;quot;both&amp;quot;, trace = FALSE)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let&amp;rsquo;s compare the two models :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;step.lm.fit$call
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;lm(formula = charges ~ age + bmi + children + smoker + region, 
+    data = insurance)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;lm.fit.sel$call
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;lm(formula = charges ~ age + bmi + children + smoker + region, 
+    data = insurance)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The model given by stepwise selection is same as the model we got by selecting the predictors with significant p-values (works in this case).&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;are-there-any-multicollinear-features&#34;&gt;&lt;strong&gt;Are there any multicollinear features?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Multicollinearity in multiple regression is a phenomenon in which two or more predictors are highly related to each other, and hence one predictor can be used to predict the value of the other. The problem with multi-collinearity is that it can make it harder to estimate the individual effects of the predictors on the outcome.&lt;/p&gt;
+
+&lt;p&gt;Multicollinearity can be detected using the Variance Inflation Factor (VIF). VIF of any predictor is the ratio of variance of its estimated coefficient in the full model to the variance of its estimated coefficient when fit on the outcome only by itself (as in simple linear regression). A VIF of 1 indicates no presence of multicollinearity. Usually, a VIF value of above 5 or 10 is taken as an indicator of multicollinearity. The simplest way of getting rid of multicollinearity in that case is to discard the predictor with high value of VIF.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;vif(step.lm.fit) %&amp;gt;% 
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;GVIF&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;Df&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;GVIF^(1/(2*Df))&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;age&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.016188&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.008061&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;bmi&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.104197&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.050808&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;children&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.003714&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.001855&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;smoker&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.006369&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.003179&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td&gt;region&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.098869&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.015838&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;None of the predictors in our case has a high value of VIF. Hence, we don&amp;rsquo;t need to worry about multicollinearity in our case.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multicollinearity%20meme.jpg&#34; alt=&#34;Source: Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;is-the-relationship-linear&#34;&gt;&lt;strong&gt;Is the relationship linear?&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;By applying linear regression, we are assuming that there is a linear relationship between the predictors and the outcome. If the underlying relationship is quite far from linear, then most of the inferences we would make would be doubtful.&lt;/p&gt;
+
+&lt;p&gt;The non-linearity of the model can be determined using the residual plot of fitted values versus the residuals. &lt;a href=&#34;http://www.statisticshowto.com/residual/&#34; target=&#34;_blank&#34;&gt;Residual&lt;/a&gt; for any observation is the difference between the actual outcome and the fitted outcome as per the model. Presence of a pattern in the residual plot would imply a problem with the linear assumption of the model.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#type = &amp;quot;rstandard&amp;quot; draws a plot for standardized residuals
+residualPlot(step.lm.fit, type = &amp;quot;rstandard&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-30-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The blue line represents a smooth pattern between the fitted values and the standard residuals. The curve in our case denotes slight non-linearity in our data.&lt;/p&gt;
+
+&lt;p&gt;The non-linearity can be further explored by looking at &lt;a href=&#34;https://www.r-bloggers.com/r-regression-diagnostics-part-1/&#34; target=&#34;_blank&#34;&gt;Component Residual plots&lt;/a&gt; (CR plots).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;ceresPlots(step.lm.fit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-31-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The pink line (residual line) is modelled for the relation between the predictor and the residuals. The blue dashed line (component line) is for the line of best fit. A significant difference between the two lines for a predictor implies that the predictor and the outcome don&amp;rsquo;t have a linear relationship.&lt;/p&gt;
+
+&lt;p&gt;This kind of inconsistency can be seen in the CR plot for &lt;em&gt;bmi&lt;/em&gt;. One of the methods of fixing this is introducing non-linear transformation of predictors of the model. Let&amp;rsquo;s try adding a non-linear transformation of &lt;em&gt;bmi&lt;/em&gt; to the model.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#update() can be used to update an existing model with new requirements
+step.lm.fit.new &amp;lt;- update(step.lm.fit, .~.+I(bmi^1.25))
+
+ceresPlots(step.lm.fit.new)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-32-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The CR plot of bmi no more has a difference between the residual line and the component line.&lt;/p&gt;
+
+&lt;p&gt;We can use ANOVA to check if the new model is significantly better than the previous model. A low p-value (&amp;lt;0.05) for the new model will mean we can conclude that it is better than the previous model:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;anova(step.lm.fit, step.lm.fit.new, test = &amp;quot;F&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Analysis of Variance Table
+
+Model 1: charges ~ age + bmi + children + smoker + region
+Model 2: charges ~ age + bmi + children + smoker + region + I(bmi^1.25)
+  Res.Df        RSS Df Sum of Sq      F  Pr(&amp;gt;F)  
+1   1330 4.8845e+10                              
+2   1329 4.8697e+10  1 148484981 4.0524 0.04431 *
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Since the model with non-linear transformation of &lt;em&gt;bmi&lt;/em&gt; has a sufficiently low p-value (&amp;lt;0.05), we can conclude that it is better than the previous model, although the p-value is marginally.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s look at the residual plot of this new model.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;residualPlot(step.lm.fit.new, type = &amp;quot;rstandard&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-34-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Looking at the residual plot of the new model, there is not much change in the overall pattern of the standard residuals.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multiple-regression-more-like-multiple-depression.jpg&#34; alt=&#34;Source: Google Images&#34; width=&#34;350&#34; height=&#34;350&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Another method of fixing the problem of non-linearity is introducing an &lt;a href=&#34;https://en.wikipedia.org/wiki/Interaction_(statistics)#In_regression&#34; target=&#34;_blank&#34;&gt;interaction&lt;/a&gt; between some predictors. A person who smokes and has a high bmi may have higher charges as compared to a person who has lower bmi and is a non-smoker. Let&amp;rsquo;s update the model to introduce an interaction between &lt;em&gt;bmi&lt;/em&gt; and &lt;em&gt;smoker&lt;/em&gt;, and see if that makes a difference:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;lm.fit1 &amp;lt;- update(step.lm.fit.new, ~ .+bmi*smoker)
+
+residualPlot(lm.fit1, type = &amp;quot;rstandard&amp;quot;, id=TRUE)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-35-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;anova(step.lm.fit.new, lm.fit1, test = &amp;quot;F&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Analysis of Variance Table
+
+Model 1: charges ~ age + bmi + children + smoker + region + I(bmi^1.25)
+Model 2: charges ~ age + bmi + children + smoker + region + I(bmi^1.25) + 
+    bmi:smoker
+  Res.Df        RSS Df  Sum of Sq      F    Pr(&amp;gt;F)    
+1   1329 4.8697e+10                                   
+2   1328 3.1069e+10  1 1.7627e+10 753.45 &amp;lt; 2.2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Not only the relation becomes more linear with less appearance of a pattern in the residual plot, the new model is significantly better than the previous model (without interactions) as can be seen with the p-value (&amp;lt;2.2e-16).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#checking the value of adjusted r-squared of new model
+summary(lm.fit1)$adj.r.squared
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;[1] 0.840469
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;em&gt;R&lt;/em&gt;&lt;sup&gt;2&lt;/sup&gt; value of the model has also increased to more than 0.84.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;non-constant-variance-of-error-terms&#34;&gt;&lt;strong&gt;Non-constant variance of error terms&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Constant variance (&lt;a href=&#34;https://en.wikipedia.org/wiki/Homoscedasticity&#34; target=&#34;_blank&#34;&gt;homoscedasticity&lt;/a&gt;) of errors is another assumption of a linear regression model. The error terms may, for instance, change with the value of the response variable in case of non-constant variance (heteroscedasticity) of errors. Some of the graphical methods of identifying heteroscedasticity is presence of a funnel shape in the residual plot, or existence of a curve in the residual plot. In the above plot, we don&amp;rsquo;t see any clear pattern.&lt;/p&gt;
+
+&lt;p&gt;A statistical way is an extension of the Breusch-Pagan Test, available in R as &lt;em&gt;ncvTest()&lt;/em&gt; in the cars package. It assumes a null hypothesis of constant variance of errors against the alternate hypothesis that the error variance changes with the level of the response or with a linear combination of predictors.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;# non-constant error variance test
+ncvTest(lm.fit1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Non-constant Variance Score Test 
+Variance formula: ~ fitted.values 
+Chisquare = 17.90486, Df = 1, p = 2.3223e-05
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A very low p-value (~2.3 * 10&lt;sup&gt;−5&lt;/sup&gt;) means the null hypothesis can be rejected. In other words, there is a high chance that the errors have a non-constant variance.&lt;/p&gt;
+
+&lt;p&gt;One of the methods to fix this problem is transformation of the outcome variable.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;yTransformer &amp;lt;- 0.8
+trans.lm.fit &amp;lt;- update(lm.fit1, charges^yTransformer~.)
+
+# non-constant error variance test
+ncvTest(trans.lm.fit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;Non-constant Variance Score Test 
+Variance formula: ~ fitted.values 
+Chisquare = 0.005724708, Df = 1, p = 0.93969
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;residualPlot(trans.lm.fit, type = &amp;quot;rstandard&amp;quot;, id=T)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-38-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A p-value of ~0.94 implies here that we cannot reject the null hypothesis of constant variance of error terms. However, there is a slight increase in non-linearity of the model as can be seen in the residual plot. This can be fixed further by looking at relations between individual predictors and outcome.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;correlation-of-error-terms&#34;&gt;&lt;strong&gt;Correlation of error terms&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;An important assumption of linear regression model is that the consecutive error terms are uncorrelated. The standard errors of the estimated regression coefficients are calculated on the basis of this assumption. If the consecutive error terms are correlated, the standard errors of the estimated regression coefficients may be much larger.&lt;/p&gt;
+
+&lt;p&gt;We can check the auto-correlation of error terms using the &lt;a href=&#34;https://en.wikipedia.org/wiki/Durbin–Watson_statistic&#34; target=&#34;_blank&#34;&gt;Durbin-Watson test&lt;/a&gt;. The null hypothesis is that the consecutive errors have no auto-correlation.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;set.seed(1)
+# Test for Autocorrelated Errors
+durbinWatsonTest(trans.lm.fit, max.lag = 5, reps=1000)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt; lag Autocorrelation D-W Statistic p-value
+   1    -0.036139510      2.070557   0.216
+   2    -0.026396886      2.050927   0.340
+   3    -0.009537725      2.017017   0.712
+   4    -0.004187672      1.996569   0.972
+   5     0.008894177      1.970058   0.680
+ Alternative hypothesis: rho[lag] != 0
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The p-value for none of the 5 lags is less than 0.05. Hence, we cannot reject the null hypothesis that the consecutive errors are not correlated, concluding that the consecutive errors are independent of each other.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;interpretations&#34;&gt;&lt;strong&gt;Interpretations&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Let&amp;rsquo;s look at the actual charges vs fitted values for the final model and compare it with the results from the initial model:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#function to plot fitted values vs actual values of charges
+fitted_vs_actual &amp;lt;- function(predictions, title){
+  ggplot(predictions, aes(x=insurance$charges, y=fit))+
+  geom_point()+
+  geom_smooth(aes(color = &#39;model&#39;))+
+  geom_line(aes(x=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                y=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                color = &#39;ideal&#39;))+
+  labs(x=&amp;quot;actual charges&amp;quot;, y=&amp;quot;fitted values&amp;quot;) + 
+  scale_color_manual(&#39;linear relation&#39;, values = c(&#39;red&#39;, &#39;blue&#39;)) +
+  theme(legend.position = c(0.25, 0.8))+
+    ggtitle(title)
+}
+
+#fitted values of initial model
+fitted_init &amp;lt;- predict(lm.fit, insurance, interval = &amp;quot;confidence&amp;quot;) %&amp;gt;%
+  tidy()
+g1 &amp;lt;- fitted_vs_actual(fitted_init, &amp;quot;Initial Model&amp;quot;)
+
+#fitted values of final model
+fitted_final &amp;lt;- predict(trans.lm.fit, insurance, 
+                             interval = &amp;quot;confidence&amp;quot;)^(1/yTransformer) %&amp;gt;%
+  tidy()
+g2 &amp;lt;- fitted_vs_actual(fitted_final, &amp;quot;Final Model&amp;quot;)
+
+#creating the two plots side-by-side
+gridExtra::grid.arrange(g1,g2, ncol = 2)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-40-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The initial model is able to approximate the actual charges below 17,000 USD, but as the actual charges go above 20,000 USD, the gap between actual charges and fitted values keeps increasing. As per the initial model, the actual charges near 50,000 USD are fitted as somewhere near or below 40,000 USD, and this gap keeps increasing upwards.&lt;/p&gt;
+
+&lt;p&gt;In comparison, the fitted values in the new model are much closer to the actual charges, although there is still a lot of variation not explained by this model. It is still a major improvement from the initial model.&lt;/p&gt;
+
+&lt;p&gt;We can look at the estimated coefficients of the predictors and their confidence intervals for interpretation on how they define the model.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;confint(trans.lm.fit) %&amp;gt;%
+  tidy() %&amp;gt;%
+  tibble::add_column(coefficients = trans.lm.fit$coefficients, .after = 2) %&amp;gt;%
+  knitr::kable()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th align=&#34;left&#34;&gt;.rownames&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;X2.5..&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;coefficients&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;X97.5..&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;(Intercept)&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-2390.28154&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1481.25919&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-572.236841&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;age&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;31.55889&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;33.69202&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;35.825159&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;bmi&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;88.38395&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;236.34998&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;384.316015&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;children&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;46.47332&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;71.13811&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;95.802903&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;smokeryes&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-2132.65819&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1763.80972&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-1394.961241&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;regionnorthwest&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-167.70823&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-82.26111&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.186011&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;regionsoutheast&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-234.48716&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-148.75323&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-63.019309&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;regionsouthwest&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-243.32648&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-157.63822&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-71.949962&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;I(bmi^1.25)&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-129.18844&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-79.06113&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-28.933829&lt;/td&gt;
+&lt;/tr&gt;
+
+&lt;tr&gt;
+&lt;td align=&#34;left&#34;&gt;bmi:smokeryes&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;132.95041&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;144.72423&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;156.498040&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;In the above table, the X2.5 and X97.5 mark the lower and upper bounds for the 95% confidence interval of the regression coefficients. These are calculated using the standard errors of the estimated coefficients. As an example, for &lt;em&gt;age&lt;/em&gt;, the estimated coefficient is ~33.69 and the 95% confidence interval lies between ~31.56 and ~35.83. This means that as per the model, keeping everything else fixed, an increase in 1 year of age will result in an increase of 33.69 in the value of *c&lt;strong&gt;h&lt;/strong&gt;a&lt;strong&gt;r&lt;/strong&gt;g&lt;strong&gt;e&lt;/strong&gt;s*&lt;sup&gt;0.8&lt;/sup&gt; (since we transformed the outcome). However, this is an estimate and hence there is a scope for variation. This variation is accounted for by the confidence interval, denoting that about 95% of the times, the change in the value of *c&lt;strong&gt;h&lt;/strong&gt;a&lt;strong&gt;r&lt;/strong&gt;g&lt;strong&gt;e&lt;/strong&gt;s*&lt;sup&gt;0.8&lt;/sup&gt; will be between 31.56 and 35.83, keeping everything else fixed.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s visualize these effects to get a better understanding of how the predictors are related to the outcome as per the model.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;#funtion to get model effects on transformed outcome
+plot_effect &amp;lt;- function(interaction, xpredictor){
+  #get effects for predictor
+  effs &amp;lt;- effects::effect(interaction, mod = trans.lm.fit, 
+                 xlevels = list(xpredictor=min(insurance[xpredictor]):max(insurance[xpredictor])))
+  
+  model.effs &amp;lt;- effs[c(&#39;x&#39;, &#39;lower&#39;, &#39;fit&#39;, &#39;upper&#39;)] %&amp;gt;%
+    as.data.frame()
+  
+  model.effs$fit &amp;lt;- model.effs$fit^(1/yTransformer)
+  model.effs$lower &amp;lt;- model.effs$lower^(1/yTransformer)
+  model.effs$upper &amp;lt;- model.effs$upper^(1/yTransformer)
+  
+  return(model.effs)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;plot_effect(&#39;age&#39;, &#39;age&#39;) %&amp;gt;%
+  ggplot(aes(x = age, y = fit)) +
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-43-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For an average value of other predictors, insurance charges increase with increase in age. More interesting effects can be seen for the interaction between &lt;em&gt;bmi&lt;/em&gt; and &lt;em&gt;smoker&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-r&#34;&gt;plot_effect(&#39;bmi*smoker&#39;, &#39;bmi&#39;) %&amp;gt;%
+  ggplot(aes(x = x.bmi, y = fit)) +
+  facet_wrap(~x.smoker)+
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;2018-09-05-linear-regression-modeling-and-assumptions_files/figure-markdown_github/unnamed-chunk-44-1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Non-smokers, irrespective of their bmi, have mostly low insurance charges for an average value of other predictors. Smokers with low bmi have low insurance charges, though still higher than non-smokers with any value of bmi. Moreover, as their bmi increases, the insurance charges of smokers increases rapidly.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;conclusion&#34;&gt;&lt;strong&gt;Conclusion&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;The model we have built can be used for inference of how the different predictors influence the outcome. It is far from perfect. Their is still presence of non-linearity and non-constant variance of errors. Moreover, the outliers and leverage points should be analyzed to find a better model. It may not (and most probably won&amp;rsquo;t) give similar results when used to predict the outcome for new, unseen data. In order to use it for prediction, more concrete measures should be taken for ensuring the accuracy of the model, like cross-validation. It still helps by providing good estimations of the significant relations between the predictors and the outcome. These estimations can be used to summarize the data in a more useful and presentful way.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;sources&#34;&gt;&lt;strong&gt;Sources&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;An Introduction to Statistical Learning, with Application in R. By James, G., Witten, D., Hastie, T., Tibshirani, R.&lt;/li&gt;
+&lt;li&gt;Wikipedia&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.statmethods.net&#34; target=&#34;_blank&#34;&gt;Quick-R&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.statisticshowto.com&#34; target=&#34;_blank&#34;&gt;Statistics How To&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative#&#34; target=&#34;_blank&#34;&gt;StackExchange&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://stackoverflow.com&#34; target=&#34;_blank&#34;&gt;Stack Overflow&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

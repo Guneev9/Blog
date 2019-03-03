@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="author" content="Guneev kaur">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Overview Cancer classification is one of the vital areas of medical sciences. In this project, we examine the Gene Expression data for various types of cancer and classify each cancer into its subtypes. We gather the samples from GEO datasets and select the best features using the class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square) statistics. We then run the following classifiers: K Nearest Neighbors, Naïve Bayes and Decision Trees.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="/project/cancer-classification/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.1/css/academicons.min.css" integrity="sha512-NThgw3XKQ1absAahW6to7Ey42uycrVvfNfyjqcFNgCmOCQ5AR4AO0SiXrN+8ZtYeappp56lk1WtvjVmEa+VR6A==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+
+  
+  <link rel="alternate" href="/index.xml" type="application/rss+xml" title="Guneev&#39;s Blog">
+  <link rel="feed" href="/index.xml" type="application/rss+xml" title="Guneev&#39;s Blog">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="/project/cancer-classification/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="og:site_name" content="Guneev&#39;s Blog">
+  <meta property="og:url" content="/project/cancer-classification/">
+  <meta property="og:title" content="Cancer Classification via Gene Expression | Guneev&#39;s Blog">
+  <meta property="og:description" content="Overview Cancer classification is one of the vital areas of medical sciences. In this project, we examine the Gene Expression data for various types of cancer and classify each cancer into its subtypes. We gather the samples from GEO datasets and select the best features using the class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square) statistics. We then run the following classifiers: K Nearest Neighbors, Naïve Bayes and Decision Trees.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-09-20T00:00:00&#43;00:00">
+  
+  <meta property="article:modified_time" content="2018-09-20T00:00:00&#43;00:00">
+  
+
+  
+
+  <title>Cancer Classification via Gene Expression | Guneev&#39;s Blog</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Guneev&#39;s Blog</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#experience">
+            
+            <span>Experience</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article article-project" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+
+    <div class="pub-title">
+      <h1 itemprop="name">Cancer Classification via Gene Expression</h1>
+      <span class="pub-authors" itemprop="author">&nbsp;</span>
+      <span class="pull-right">
+        
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Cancer%20Classification%20via%20Gene%20Expression&amp;url=%2fproject%2fcancer-classification%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=%2fproject%2fcancer-classification%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=%2fproject%2fcancer-classification%2f&amp;title=Cancer%20Classification%20via%20Gene%20Expression"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=%2fproject%2fcancer-classification%2f&amp;title=Cancer%20Classification%20via%20Gene%20Expression"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Cancer%20Classification%20via%20Gene%20Expression&amp;body=%2fproject%2fcancer-classification%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+      </span>
+    </div>
+
+    
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<h2 id="overview"><strong>Overview</strong></h2>
+
+<p>Cancer classification is one of the vital areas of medical sciences. In this project, we examine the Gene Expression data for various types of cancer and classify each cancer into its subtypes. We gather the samples from GEO datasets and select the best features using the class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square)  statistics. We then run the following classifiers: K Nearest Neighbors, Naïve Bayes and Decision Trees. We then checked the accuracy of a classifier against a feature selection method for all combinations and observe a feature selection – classifier pair that gives a better accuracy for a particular dataset.</p>
+
+<h2 id="background"><strong>Background</strong></h2>
+
+<p>Early discovery of cancer is an important step in determining the treatment of a patient. Gene expression data can be used to predict the presence of cancer. Traditional way of cancer classification uses the physical attributes and the symptoms of the patient to gain a deeper understanding of the patient’s condition. Because causation and spread of cancer is more related to the genes, it is equally important to study the gene expression data.</p>
+
+<h2 id="goal"><strong>Goal</strong></h2>
+
+<p>Our goal was to use Gene Expression Omnibus (GEO) datasets to build models that can predict the presence of cancer and identify the severity of the cancer. These datasets are freely and publicly available from the <a href="https://www.ncbi.nlm.nih.gov/gds" target="_blank">NCBI</a>. Each dataset has the gene expression data for various samples, with rows of a matrix file denoting the probe id and the columns denoting the samples. We took five GEO datasets, which have been briefly explained below :</p>
+
+<h3 id="gse19804-lung-cancer-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse19804"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE19804" target="_blank">GSE19804 (Lung Cancer Dataset)</a>:</h3>
+
+<p>GSE19804 is a lung cancer dataset having 120 samples, with 60 lung cancer tissue samples and 60 normal tissue samples, with 54, 675 probe sets.</p>
+
+<h3 id="gse27562-breast-cancer-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse27562"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE27562" target="_blank">GSE27562 (Breast Cancer Dataset)</a>:</h3>
+
+<p>GSE27562 is a breast cancer dataset having 31 normal samples, 57 malignant breast cancer samples, and 37 benign breast cancer samples, with 54, 675 probe sets. There are 15 gastrointestinal tumor and and 7 brain tumor samples, which we have excluded from the datasets as a part of the experiments. We have also excluded 15 breast cancer samples following surgery, since there is no information about them having shown any signs of cancer after surgery.</p>
+
+<h3 id="gse32474-nci60-dataset-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse32474"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE32474" target="_blank">GSE32474 (NCI60 Dataset)</a>:</h3>
+
+<p>GSE32474 dataset contains 9 types of different tumors. It has 18 samples for leukemia, 15 samples for breast cancer, 21 samples for ovarian cancer, 21 samples for colon cancer, 26 samples for melanoma, 18 samples for central nervous system, 23 samples for renal cancer and 26 samples for non-small lung cancer, with 54, 675 probe sets. We have excluded 6 prostate samples, since it is not enough for classification.</p>
+
+<h3 id="gse33315-leukemia-dataset-http-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse33315"><a href="http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE33315" target="_blank">GSE33315 (Leukemia Dataset)</a>:</h3>
+
+<p>GSE33315 dataset contains 7 types of leukemia cancer. It has 115 samples of type hyperdiploid, 40 samples of TCF3-PBX1, 99 samples of ETV_RUNX1, 30 samples of MLL, 23 samples of PH , 23 samples of hypodiploid and 83 samples of T-ALL, with 22,283 probe sets. We have excluded 4 CD34 and 4 CD10CD19 samples, since that is too less for classification. We have also excluded 153 samples having no known karyotype to focus on leukemia.</p>
+
+<h3 id="gse59856-pancreatic-and-biliary-tract-cancer-https-www-ncbi-nlm-nih-gov-geo-query-acc-cgi-acc-gse59856"><a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59856" target="_blank">GSE59856 (Pancreatic and Biliary Tract Cancer)</a>:</h3>
+
+<p>GSE59856 dataset contains 100 pancreatic cancer samples, 98 biliary tract samples, 50 colon cancer samples, 50 stomach cancer samples, 50 esophagus cancer samples, 52 liver cancer samples, 150 healthy samples, with 2555 probe sets.</p>
+
+<h2 id="challenges"><strong>Challenges</strong></h2>
+
+<p>There were two major challenges in this project:</p>
+
+<ol>
+<li>High number of features</li>
+<li>Low number of samples</li>
+</ol>
+
+<p>These two challenges go side-by-side in this scenario. Probe ids of a series metrix file essentialy denote the genes whose expression value has been recorded. As such, they are the features of the datasets. As an extreme example, the Lung Cancer Dataset (GSE19804) had 54,675 probe ids, while there were only 120 samples in this dataset. This is a very low number of observations as compared to the number of features; a ratio of less than 0.002. Similar is the case for the Breast Cancer Dataset (GSE27562). Other datasets, though not as extreme, suffer from a similar problem of higher number of features as compared to the number fo observations.</p>
+
+<h2 id="actions"><strong>Actions</strong></h2>
+
+<p>In order to get rid of the <a href="https://en.wikipedia.org/wiki/Curse_of_dimensionality#Machine_learning" target="_blank">curse of dimensionality</a>, we tried variety of methods for feature selection and model, depending on the data. A simple example of this the Lung Cancer Dataset (GSE19804). A plot of the features with high variance in this dataset looked like this:</p>
+
+<p><img src="https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE19804_results/Most_variant_features.png" alt="GSE19804: Features with high variance - parallel visualization" /></p>
+
+<p>The y-axis denotes the expression values of the genes. It is quite clear from the plot how the expression values of genes are different for the healthy samples and the ones with cancer. While the expression values of genes of cancer patient are all over the place, those of the healthy sample are concentrated at particular locations.</p>
+
+<p>This distinction is more clear in the radial visualization of these 8 genes:</p>
+
+<p><img src="https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE19804_results/radviz_most_variant.png" alt="GSE19804: Features with high variance - radial visualization" /></p>
+
+<p>This plot displays relative expression values of the 8 genes. The higher the normalized value of expression, the closer the observation is to the gene. It can be seen how the genes of a healthy person form a cluster, while those of a cancer patient are spread over. As such, simply selecting the features with high variance may work in this case.</p>
+
+<p>This method doesn&rsquo;t work in other cases though. Take an example of the NCI60 Dataset (GSE32474):</p>
+
+<p><img src="https://raw.githubusercontent.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/KNeighborsClassifier/GSE32474_results/Most_variant_features.png" alt="GSE32474: Features with high variance - parallel visualization" /></p>
+
+<p>The expression values of the genes are crossing over for different cancer types and hence it is not easy to distinguish them.</p>
+
+<p>Because of different distributions of the datasets, we tried different methods for feature selection. These methods were class-overlap score, standard deviation by mean ratio, ANOVA – F value and $\chi^2$ (Chi-square)  statistics. Additionally, we tried different machine learning models, including KNN, Naive Bayes and Decision Trees. These were combined with the feature selection methods to get the best results, making the selection by trial and error.</p>
+
+<h2 id="results"><strong>Results</strong></h2>
+
+<p>We ran our experiments using stratified random sub-sampling validation. The stratified approach was taken to avoid the effects of unbalanced classes in the datasets. Random sub-sampling was done, instead of k-fold cross validation, since the number of samples in the datasets are quite low. These validations were repeated 10 times for each combination, and the average results were noted. F1 score was used as the metric to measure the performance.</p>
+
+<p>The results for the five datasets can be seen below.</p>
+
+<p><img src="https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results.png" alt="" />
+<img src="https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_2.png" alt="" />
+<img src="https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_3.png" alt="" />
+<img src="https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_4.png" alt="" />
+<img src="https://raw.github.com/krohitm/Cancer-Prediction-and-Classification-via-Gene-Expression/master/results/CC_results_5.png" alt="" /></p>
+
+<p>Each cell in a table has (F1 score, number of features).
+Around 100 features gave the best results in most of the cases.</p>
+
+<h2 id="further-scope"><strong>Further scope</strong></h2>
+
+<p>Complete report of the project can be seen <a href="https://docs.google.com/document/d/17PdU_me1FKvm-pUoQZRY--Ui-48OkeSdrztHt4jrnaE/edit?usp=sharing" target="_blank">here</a></p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="/tags/machine-learning">machine-learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/feature-selection">feature-selection</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/cancer-detection">cancer-detection</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/python">python</a>
+  
+  <a class="btn btn-primary btn-outline" href="/tags/scikit-learn">scikit-learn</a>
+  
+</div>
+
+
+
+
+    
+    
+    
+
+    
+
+  </div>
+</article>
+
+
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/R.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/python.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

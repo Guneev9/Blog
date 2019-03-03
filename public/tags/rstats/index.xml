@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>rstats on Guneev&#39;s Blog</title>
+    <link>/tags/rstats/</link>
+    <description>Recent content in rstats on Guneev&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 01 Nov 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/rstats/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Practical Significance: Looking beyond p-value</title>
+      <link>/post/practical-significance-looking-beyond-p-value/</link>
+      <pubDate>Thu, 01 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/post/practical-significance-looking-beyond-p-value/</guid>
+      <description>What is the need to look beyond p-value? How do we check the practical importance of the statistically significant result? Identify the effect needed for practical importance Use Confidence Intervals  Conclusion Sources   What is the need to look beyond p-value? In my last post, I mentioned how we can use p-values to select important variables in a linear model. In general, this sounds like an easy basis of testing a hypothesis, but that is not where the story ends.</description>
+    </item>
+    
+    <item>
+      <title>Linear regression: Modeling and Assumptions</title>
+      <link>/post/linear-regression-modeling-and-assumptions/</link>
+      <pubDate>Mon, 17 Sep 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/post/linear-regression-modeling-and-assumptions/</guid>
+      <description>Introduction Is there a relationship between the medical charges and the predictors? Which variables have a strong relation to medical charges? Are there any multicollinear features? Is the relationship linear? Non-constant variance of error terms Correlation of error terms Interpretations Conclusion Sources   Introduction Regression analysis is a powerful statistical process to find the relations within a dataset, with the key focus being on relationships between the independent variables (predictors) and a dependent variable (outcome).</description>
+    </item>
+    
+  </channel>
+</rss>

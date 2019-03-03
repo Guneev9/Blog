@@ -1,0 +1,361 @@
+---
+title: 'Linear regression: Modeling and Assumptions'
+author: Kumar Rohit Malhotra
+date: '2018-09-17'
+slug: linear-regression-modeling-and-assumptions
+output:
+  blogdown::html_page:
+    toc: true
+categories:
+  - data analysis
+tags:
+  - data analysis
+  - rstats
+  - statistics
+  - statistical learning
+---
+
+```{r setup, include=FALSE, message=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message=FALSE, comment='')
+```
+
+## **Introduction**
+
+Regression analysis is a powerful statistical process to find the relations within a dataset, with the key focus being on relationships between the independent variables (predictors) and a dependent variable (outcome). It can be used to build models for inference or prediction. Among several methods of regression analysis, linear regression sets the basis and is quite widely used for [several real-world applications](https://en.wikipedia.org/wiki/Linear_regression#Applications){target="_blank"}. 
+
+In this post, we will look at building a linear regression model for inference. The dataset we will use is the insurance charges data obtained from [Kaggle](https://www.kaggle.com/mirichoi0218/insurance/home){target="_blank"}. This data set consists of 1,338 observations and 7 columns: age, sex, bmi, children, smoker, region and charges.
+
+The key questions that we would be asking are:
+
+1. Is there a relationship between medical charges and other variables in the dataset?
+2. How valid is the model we have built?
+3. What can we do to improve the model?
+
+![Source : Google Images](/post/2018-09-05-linear-regression-modeling-and-assumptions_files/2120406.jpg){width=350px height=350px}
+
+We start with importing the main required libraries and data:
+
+```{r}
+library(magrittr)
+library(car)
+library(broom)
+library(ggplot2)
+```
+
+```{r}
+insurance <- read.csv('~/Documents/CodeWork/medicalCost/insurance.csv')
+summary(insurance)
+```
+
+Some simple observations that can be made from the summary are:
+
+1. The age of participants varies from 18 to 64.
+2. Around 49.48% of participants are female.
+3. The bmi of participants ranges from 15.96 to 53.13.
+4. Only 20.48% of the participants are smokers.
+
+Let's start with building a linear model. Instead of simple linear regression, where you have one predictor and one outcome, we will go with multiple linear regression, where you have more than one predictors and one outcome.
+
+Multiple linear regression follows the formula : 
+
+$y = {\beta_0}+ {\beta_1}x_1+{\beta_2}x_2+...$
+
+The coefficients in this linear equation denote the magnitude of additive relation between the predictor and the response. In simpler words, keeping everything else fixed, a unit change in $x_1$ will lead to change of ${\beta_1}$ in the outcome, and so on.
+
+## **Is there a relationship between the medical charges and the predictors?**
+
+Our first step is finding if there is any relationship between the outcome and the predictors.
+
+The null hypothesis would be that there is no relation between any of the predictors and the response, which can be tested by computing the [F statistic](http://www.statisticshowto.com/probability-and-statistics/F statistic-value-test/){target="_blank"}. The p-value of F statistic can be used to determine whether the null hypothesis can be rejected or not.
+
+We will start with fitting a multiple linear regression model using all the predictors: 
+
+```{r}
+lm.fit <- lm(formula = charges~., data = insurance)
+#Here '.' means we are using all the predictors in the dataset.
+summary(lm.fit)
+```
+
+A high value of F statistic, with a very low p-value (<2.2e-16), implies that the null hypothesis can be rejected. This means there is a potential relationship between the predictors and the outcome.
+
+RSE (Residual Standard Error) is the estimate of the standard deviation of irreducible error (the error which can't be reduced even if we knew the true regression line; hence, irreducible). In simpler words, it is the average deviation between the actual outcome and the true regression line. A large value of RSE (6062) means a high deviation of our model from the true regression line.
+
+R-squared ($R^2$) measures the proportion of variability in the outcome that can be explained by the model, and is [almost always between 0 and 1](https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative){target="_blank"}; the higher the value, the better the model is able to explain the variability in the outcome. However, increase in number of predictors mostly results in an increased value of $R^2$ due to [inflation of R-squared](https://en.wikipedia.org/wiki/Coefficient_of_determination#Inflation_of_R2){target="_blank"}. [Adjusted R-squared](https://en.wikipedia.org/wiki/Coefficient_of_determination#Adjusted_R2){target="_blank"} adjusts the value of $R^2$ to avoid this effect. A high value of adjusted $R^2$ (0.7494) shows that more than 74% of the variance in the data is being explained by the model.
+
+The Std. Error gives us the average amount that the estimated coefficient of a predictor differs from the actual coefficient of predictor. It can be used to compute the confidence interval of an estimated coefficient, which we will see later.
+
+The _t value_ of a predictor tells us how many standard deviations its estimated coefficient is away from 0. _Pr (>|t|)_ for a predictor is the p-value for the estimated regression coefficient, which is same as saying what is the probability of seeing a t value for the regression coefficient. A very low p-value (<0.05) for a predictor can be used to infer that there is a relationsip between the predictor and the outcome.
+
+Our next step should be [validation of regression analysis](https://en.wikipedia.org/wiki/Regression_validation){target="_blank"}. This may mean validation of underlying assumptions of the model, checking the structure of model with different predictors, looking for observations that have not been represented well enough in the model, and more. We will look at a few of these methods and assumptions.
+
+***
+
+## **Which variables have a strong relation to medical charges?**
+
+Now that we have determined that there is a relation between the predictors and the outcome, our next step would be finding out if all or only some of the predictors are related to the outcome.
+
+If we look at the p-values of the estimated coefficients above, we see that not all the coefficients are statistically significant (<0.05). This means that only a subset of the predictors are related to the outcome.
+
+We can look at the individual p-values for selecting the variables. This may not be a problem when the number of predictors (7) is quite small compared to the number of observations (1338). This method won't, however, work when the number of predictors is greater than the number of observations because of the [multiple testing problem](http://www.statisticshowto.com/multiple-testing-problem/){target="_blank"}. A better way of selecting predictors is [feature/variable selection](https://en.wikipedia.org/wiki/Feature_selection){target="_blank"} methods, like forward selection, backward selection, or mixed selection.
+
+Before jumping on to feature selection using any of these methods, let us try linear regression using the features with significant p-values only.
+
+```{r}
+lm.fit.sel <- lm(charges~age+bmi+children+smoker+region, data = insurance)
+```
+
+We will compare this to [mixed selection](https://www.stat.ubc.ca/~rollin/teach/643w04/lec/node43.html){target="_blank"}, which is a combination of forward and backward selection. This can be done in R using the _stepAIC()_ function, which uses [Akaike Information Criterion](https://en.wikipedia.org/wiki/Akaike_information_criterion){target="_blank"} (AIC) to select the best model out of multiple models.
+
+```{r}
+#selecting direction = "both" for mixed selection
+step.lm.fit <- MASS::stepAIC(lm.fit, direction = "both", trace = FALSE)
+```
+
+Let's compare the two models :
+
+```{r}
+step.lm.fit$call
+lm.fit.sel$call
+```
+
+The model given by stepwise selection is same as the model we got by selecting the predictors with significant p-values (works in this case). 
+
+***
+
+## **Are there any multicollinear features?**
+
+Multicollinearity in multiple regression is a phenomenon in which two or more predictors are highly related to each other, and hence one predictor can be used to predict the value of the other. The problem with multi-collinearity is that it can make it harder to estimate the individual effects of the predictors on the outcome. 
+
+Multicollinearity can be detected using the Variance Inflation Factor (VIF). VIF of any predictor is the ratio of variance of its estimated coefficient in the full model to the variance of its estimated coefficient when fit on the outcome only by itself (as in simple linear regression). A VIF of 1 indicates no presence of multicollinearity. Usually, a VIF value of above 5 or 10 is taken as an indicator of multicollinearity. The simplest way of getting rid of multicollinearity in that case is to discard the predictor with high value of VIF.
+
+```{r results='asis'}
+vif(step.lm.fit) %>% 
+  knitr::kable()
+```
+
+None of the predictors in our case has a high value of VIF. Hence, we don't need to worry about multicollinearity in our case.
+
+![Source: Google Images](/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multicollinearity meme.jpg){width=350px height=350px}
+
+***
+
+## **Is the relationship linear?**
+
+By applying linear regression, we are assuming that there is a linear relationship between the predictors and the outcome. If the underlying relationship is quite far from linear, then most of the inferences we would make would be doubtful.
+
+The non-linearity of the model can be determined using the residual plot of fitted values versus the residuals. [Residual](http://www.statisticshowto.com/residual/){target="_blank"} for any observation is the difference between the actual outcome and the fitted outcome as per the model. Presence of a pattern in the residual plot would imply a problem with the linear assumption of the model.
+
+```{r}
+#type = "rstandard" draws a plot for standardized residuals
+residualPlot(step.lm.fit, type = "rstandard")
+```
+
+The blue line represents a smooth pattern between the fitted values and the standard residuals. The curve in our case denotes slight non-linearity in our data.
+
+The non-linearity can be further explored by looking at [Component Residual plots](https://www.r-bloggers.com/r-regression-diagnostics-part-1/){target="_blank"} (CR plots).
+
+```{r}
+ceresPlots(step.lm.fit)
+```
+
+The pink line (residual line) is modelled for the relation between the predictor and the residuals. The blue dashed line (component line) is for the line of best fit. A significant difference between the two lines for a predictor implies that the predictor and the outcome don't have a linear relationship.
+
+This kind of inconsistency can be seen in the CR plot for _bmi_. One of the methods of fixing this is introducing non-linear transformation of predictors of the model. Let's try adding a non-linear transformation of _bmi_ to the model.
+
+```{r}
+#update() can be used to update an existing model with new requirements
+step.lm.fit.new <- update(step.lm.fit, .~.+I(bmi^1.25))
+
+ceresPlots(step.lm.fit.new)
+```
+
+The CR plot of bmi no more has a difference between the residual line and the component line.
+
+We can use ANOVA to check if the new model is significantly better than the previous model. A low p-value (<0.05) for the new model will mean we can conclude that it is better than the previous model:
+
+```{r}
+anova(step.lm.fit, step.lm.fit.new, test = "F")
+```
+
+Since the model with non-linear transformation of _bmi_ has a sufficiently low p-value (<0.05), we can conclude that it is better than the previous model, although the p-value is marginally.
+
+Let's look at the residual plot of this new model.
+
+```{r}
+residualPlot(step.lm.fit.new, type = "rstandard")
+```
+
+Looking at the residual plot of the new model, there is not much change in the overall pattern of the standard residuals.
+
+![Source: Google Images](/post/2018-09-05-linear-regression-modeling-and-assumptions_files/multiple-regression-more-like-multiple-depression.jpg){width=350px height=350px}
+
+Another method of fixing the problem of non-linearity is introducing an [interaction](https://en.wikipedia.org/wiki/Interaction_(statistics)#In_regression){target="_blank"} between some predictors. A person who smokes and has a high bmi may have higher charges as compared to a person who has lower bmi and is a non-smoker. Let's update the model to introduce an interaction between _bmi_ and _smoker_, and see if that makes a difference:
+
+```{r}
+lm.fit1 <- update(step.lm.fit.new, ~ .+bmi*smoker)
+
+residualPlot(lm.fit1, type = "rstandard", id=TRUE)
+anova(step.lm.fit.new, lm.fit1, test = "F")
+```
+
+Not only the relation becomes more linear with less appearance of a pattern in the residual plot, the new model is significantly better than the previous model (without interactions) as can be seen with the p-value (<2.2e-16).
+
+```{r}
+#checking the value of adjusted r-squared of new model
+summary(lm.fit1)$adj.r.squared
+```
+
+The $R^2$ value of the model has also increased to more than 0.84.
+
+***
+
+## **Non-constant variance of error terms**
+
+Constant variance ([homoscedasticity](https://en.wikipedia.org/wiki/Homoscedasticity){target="_blank"}) of errors is another assumption of a linear regression model. The error terms may, for instance, change with the value of the response variable in case of non-constant variance (heteroscedasticity) of errors. Some of the graphical methods of identifying heteroscedasticity is presence of a funnel shape in the residual plot, or existence of a curve in the residual plot. In the above plot, we don't see any clear pattern. 
+
+A statistical way is an extension of the Breusch-Pagan Test, available in R as _ncvTest()_ in the cars package. It assumes a null hypothesis of constant variance of errors against the alternate hypothesis that the error variance changes with the level of the response or with a linear combination of predictors.
+
+```{r}
+# non-constant error variance test
+ncvTest(lm.fit1)
+```
+
+A very low p-value (~$2.3*10^{-5}$) means the null hypothesis can be rejected. In other words, there is a high chance that the errors have a non-constant variance.
+
+One of the methods to fix this problem is transformation of the outcome variable. 
+
+```{r}
+yTransformer <- 0.8
+trans.lm.fit <- update(lm.fit1, charges^yTransformer~.)
+
+# non-constant error variance test
+ncvTest(trans.lm.fit)
+residualPlot(trans.lm.fit, type = "rstandard", id=T)
+```
+
+A p-value of ~0.94 implies here that we cannot reject the null hypothesis of constant variance of error terms. However, there is a slight increase in non-linearity of the model as can be seen in the residual plot. This can be fixed further by looking at relations between individual predictors and outcome.
+
+***
+
+## **Correlation of error terms**
+
+An important assumption of linear regression model is that the consecutive error terms are uncorrelated. The standard errors of the estimated regression coefficients are calculated on the basis of this assumption. If the consecutive error terms are correlated, the standard errors of the estimated regression coefficients may be much larger.
+
+We can check the auto-correlation of error terms using the [Durbin-Watson test](https://en.wikipedia.org/wiki/Durbin–Watson_statistic){target="_blank"}. The null hypothesis is that the consecutive errors have no auto-correlation.
+
+```{r}
+set.seed(1)
+# Test for Autocorrelated Errors
+durbinWatsonTest(trans.lm.fit, max.lag = 5, reps=1000)
+```
+
+The p-value for none of the 5 lags is less than 0.05. Hence, we cannot reject the null hypothesis that the consecutive errors are not correlated, concluding that the consecutive errors are independent of each other.
+
+***
+
+## **Interpretations**
+
+Let's look at the actual charges vs fitted values for the final model and compare it with the results from the initial model:
+
+```{r}
+#function to plot fitted values vs actual values of charges
+fitted_vs_actual <- function(predictions, title){
+  ggplot(predictions, aes(x=insurance$charges, y=fit))+
+  geom_point()+
+  geom_smooth(aes(color = 'model'))+
+  geom_line(aes(x=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                y=seq(min(insurance$charges),max(insurance$charges), length.out = 1338), 
+                color = 'ideal'))+
+  labs(x="actual charges", y="fitted values") + 
+  scale_color_manual('linear relation', values = c('red', 'blue')) +
+  theme(legend.position = c(0.25, 0.8))+
+    ggtitle(title)
+}
+
+#fitted values of initial model
+fitted_init <- predict(lm.fit, insurance, interval = "confidence") %>%
+  tidy()
+g1 <- fitted_vs_actual(fitted_init, "Initial Model")
+
+#fitted values of final model
+fitted_final <- predict(trans.lm.fit, insurance, 
+                             interval = "confidence")^(1/yTransformer) %>%
+  tidy()
+g2 <- fitted_vs_actual(fitted_final, "Final Model")
+
+#creating the two plots side-by-side
+gridExtra::grid.arrange(g1,g2, ncol = 2)
+```
+
+The initial model is able to approximate the actual charges below 17,000 USD, but as the actual charges go above 20,000 USD, the gap between actual charges and fitted values keeps increasing. As per the initial model, the actual charges near 50,000 USD are fitted as somewhere near or below 40,000 USD, and this gap keeps increasing upwards.
+
+In comparison, the fitted values in the new model are much closer to the actual charges, although there is still a lot of variation not explained by this model. It is still a major improvement from the initial model.
+
+We can look at the estimated coefficients of the predictors and their confidence intervals for interpretation on how they define the model.
+
+```{r results='asis'}
+confint(trans.lm.fit) %>%
+  tidy() %>%
+  tibble::add_column(coefficients = trans.lm.fit$coefficients, .after = 2) %>%
+  knitr::kable()
+```
+
+In the above table, the X2.5 and X97.5 mark the lower and upper bounds for the 95% confidence interval of the regression coefficients. These are calculated using the standard errors of the estimated coefficients. As an example, for _age_, the estimated coefficient is ~33.69 and the 95% confidence interval lies between ~31.56 and ~35.83. This means that as per the model, keeping everything else fixed, an increase in 1 year of age will result in an increase of 33.69 in the value of $charges^{0.8}$ (since we transformed the outcome). However, this is an estimate and hence there is a scope for variation. This variation is accounted for by the confidence interval, denoting that about 95% of the times, the change in the value of $charges^{0.8}$ will be between 31.56 and 35.83, keeping everything else fixed.
+
+Let's visualize these effects to get a better understanding of how the predictors are related to the outcome as per the model.
+
+```{r}
+#funtion to get model effects on transformed outcome
+plot_effect <- function(interaction, xpredictor){
+  #get effects for predictor
+  effs <- effects::effect(interaction, mod = trans.lm.fit, 
+                 xlevels = list(xpredictor=min(insurance[xpredictor]):max(insurance[xpredictor])))
+  
+  model.effs <- effs[c('x', 'lower', 'fit', 'upper')] %>%
+    as.data.frame()
+  
+  model.effs$fit <- effs$fit^(1/yTransformer)
+  model.effs$lower <- effs$lower^(1/yTransformer)
+  model.effs$upper <- effs$upper^(1/yTransformer)
+  
+  return(model.effs)
+}
+```
+
+```{r}
+plot_effect('age', 'age') %>%
+  ggplot(aes(x = age, y = fit)) +
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)
+```
+
+For an average value of other predictors, insurance charges increase with increase in age. More interesting effects can be seen for the interaction between _bmi_ and _smoker_:
+
+```{r}
+plot_effect('bmi*smoker', 'bmi') %>%
+  ggplot(aes(x = x.bmi, y = fit)) +
+  facet_wrap(~x.smoker)+
+  theme_bw()+
+  geom_line()+
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.5)
+```
+
+Non-smokers, irrespective of their bmi, have mostly low insurance charges for an average value of other predictors. Smokers with low bmi have low insurance charges, though still higher than non-smokers with any value of bmi. Moreover, as their bmi increases, the insurance charges of smokers increases rapidly.
+
+***
+
+## **Conclusion**
+
+The model we have built can be used for inference of how the different predictors influence the outcome. It is far from perfect. Their is still presence of non-linearity and non-constant variance of errors. Moreover, the outliers and leverage points should be analyzed to find a better model. It may not (and most probably won't) give similar results when used to predict the outcome for new, unseen data. In order to use it for prediction, more concrete measures should be taken for ensuring the accuracy of the model, like cross-validation. It still helps by providing good estimations of the significant relations between the predictors and the outcome. These estimations can be used to summarize the data in a more useful and presentful way.
+
+***
+
+## **Sources**
+
+* An Introduction to Statistical Learning, with Application in R. By James, G., Witten, D., Hastie, T., Tibshirani, R.
+* Wikipedia
+* [Quick-R](https://www.statmethods.net){target="_blank"}
+* [Statistics How To](http://www.statisticshowto.com){target="_blank"}
+* [StackExchange](https://stats.stackexchange.com/questions/12900/when-is-r-squared-negative#){target="_blank"}
+* [Stack Overflow](https://stackoverflow.com){target="_blank"}
