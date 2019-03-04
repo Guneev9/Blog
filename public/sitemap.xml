@@ -23,8 +23,26 @@
     
     <url>
     
+      <loc>/project/cancer-classification/</loc>
+      <lastmod>2018-09-20T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>/post/linear-regression-modeling-and-assumptions/</loc>
       <lastmod>2018-09-17T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/project/twitter-engine/</loc>
+      <lastmod>2018-05-02T00:00:00+00:00</lastmod>
     </url>
     
   
@@ -50,6 +68,24 @@
     
     <url>
     
+      <loc>/publication/intelligent-icu/</loc>
+      <lastmod>2018-04-25T00:00:00-05:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/publication/autonomus-detection/</loc>
+      <lastmod>2018-04-15T00:00:00-05:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>/publication/autonomus-detection/</loc>
       <lastmod>2018-04-15T00:00:00-05:00</lastmod>
     </url>
@@ -61,6 +97,24 @@
     
       <loc>/project/twitter-simulator/</loc>
       <lastmod>2018-04-09T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/project/twitter-simulator/</loc>
+      <lastmod>2018-04-09T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/talk/example-talk/</loc>
+      <lastmod>2017-01-01T00:00:00-06:00</lastmod>
     </url>
     
   
@@ -106,6 +160,14 @@
     
       <loc>/talk/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>/post/2018-09-05-linear-regression-modeling-and-assumptions/</loc>
     </url>
     
   
