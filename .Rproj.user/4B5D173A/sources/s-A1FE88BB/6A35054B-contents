@@ -267,8 +267,8 @@ defaultContentLanguageInSubdir = false
   weight = 3
 
 [[menu.main]]
-  name = "Publications"
-  url = "#publications"
+  name = "Experience"
+  url = "#experiences"
   weight = 2
 
 [[menu.main]]
@@ -276,10 +276,10 @@ defaultContentLanguageInSubdir = false
   url = "#contact"
   weight = 5
   
-[[menu.main]]
-  name = "Experience"
-  url = "#experience"
-  weight = 2
+#[[menu.main]]
+  #name = "Experience"
+  #url = "#experience"
+ # weight = 2
 
 
 # Taxonomies.
